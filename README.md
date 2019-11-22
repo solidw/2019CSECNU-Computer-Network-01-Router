@@ -11,3 +11,7 @@ Flag : Boolean[3]
 Interface : String
 Metric : Int
 ```
+
+
+
+프로그램이 실행되었을 때 연결되어 있는 모든 장치에 GARP 보내기
