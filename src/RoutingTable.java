@@ -13,6 +13,10 @@ public class RoutingTable {
         return instance;
     }
 
+    public  RoutingRow getRoutingTableRow(byte[] destination, int netmask, byte[] gateway, boolean[] flags, String interfaceName, int metric){
+        return new RoutingRow(destination, netmask, gateway, flags, interfaceName, metric);
+    }
+
     public void add(RoutingRow row) {
         table.add(row);
         Collections.sort(table);

@@ -104,7 +104,6 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 				return;
 			}
 		}
-
 		addArpToTable(arpCache);
 	}
 
@@ -152,7 +151,6 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 				ret[i] = (byte) (minus);
 			}
 		}
-
 		return ret;
 	}
 
@@ -264,6 +262,7 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			public void actionPerformed(ActionEvent e) {
 				routingAddDialog routingAddDialog = new routingAddDialog();
 				routingAddDialog.setVisible(true);
+
 			}
 		});
 		btnRoutingAdd.setBounds(167, 399, 111, 31);
@@ -351,6 +350,9 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 		setVisible(true);
 	}
 
+	JRadioButton rdbtnUp;
+	JRadioButton rdbtnGateway;
+	JRadioButton rdbtnHost;
 	public class routingAddDialog extends JFrame {
 		String[] deviceList = { "Interface 0", "Interface 1" };
 
@@ -402,7 +404,38 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			JButton btnAdd = new JButton("추가");
 			btnAdd.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					dispose();
+					String ipAddr = textFieldDestination.getText();
+					String netMask = textFieldNetmask.getText();
+					String gateway = textFieldGateway.getText();
+
+					InetAddress ip = null;
+					InetAddress gateWayIp = null;
+					try {
+						int fullCount = 32;
+						int zeroCount = 0;
+						int intNetmask;
+						long mask = ipToLong(netMask);
+						for (int i = 0; i < 32; i++) {
+							if((mask & 1) == 0){
+								zeroCount++;
+							}else{
+								break;
+							}
+							mask  = mask >> 1;
+						}
+						ip = InetAddress.getByName(ipAddr);
+						gateWayIp = InetAddress.getByName(gateway);
+						intNetmask = fullCount - zeroCount;
+						boolean[] flag = new boolean[3];
+						flag[0] = rdbtnUp.isSelected();
+						flag[1] = rdbtnGateway.isSelected();
+						flag[2] = rdbtnHost.isSelected();
+						System.out.println(fullCount - zeroCount);
+						RoutingTable tbl = RoutingTable.getInstance();
+						tbl.add(tbl.getRoutingTableRow(ip.getAddress(), intNetmask, gateWayIp.getAddress(), flag, "interface1", 1));
+					} catch (UnknownHostException e1) {
+						e1.printStackTrace();
+					}
 				}
 			});
 			btnAdd.setBounds(54, 231, 97, 23);
@@ -436,15 +469,15 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			lblInterface.setBounds(12, 187, 78, 15);
 			routingDialogPane.add(lblInterface);
 
-			JRadioButton rdbtnUp = new JRadioButton("UP");
+			rdbtnUp = new JRadioButton("UP");
 			rdbtnUp.setBounds(110, 143, 41, 23);
 			routingDialogPane.add(rdbtnUp);
 
-			JRadioButton rdbtnGateway = new JRadioButton("Gateway");
+			rdbtnGateway = new JRadioButton("Gateway");
 			rdbtnGateway.setBounds(164, 143, 85, 23);
 			routingDialogPane.add(rdbtnGateway);
 
-			JRadioButton rdbtnHost = new JRadioButton("Host");
+			rdbtnHost = new JRadioButton("Host");
 			rdbtnHost.setBounds(263, 143, 51, 23);
 			routingDialogPane.add(rdbtnHost);
 
@@ -455,6 +488,22 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			textFieldDestination.setBounds(110, 20, 204, 21);
 			routingDialogPane.add(textFieldDestination);
 		}
+	}
+
+	public long ipToLong(String ipAddress) {
+
+		String[] ipAddressInArray = ipAddress.split("\\.");
+
+		long result = 0;
+		for (int i = 0; i < ipAddressInArray.length; i++) {
+
+			int power = 3 - i;
+			int ip = Integer.parseInt(ipAddressInArray[i]);
+			result += ip * Math.pow(256, power);
+
+		}
+
+		return result;
 	}
 
 	public class proxyAddDialog extends JFrame {
