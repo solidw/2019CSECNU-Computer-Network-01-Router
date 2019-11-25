@@ -1,7 +1,4 @@
-package arp;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class EthernetLayer implements BaseLayer {
 

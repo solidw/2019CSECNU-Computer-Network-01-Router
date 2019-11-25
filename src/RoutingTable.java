@@ -1,6 +1,5 @@
-package arp;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class RoutingTable {
     public ArrayList<RoutingRow> table = new ArrayList<>();
@@ -87,7 +86,7 @@ public class RoutingTable {
             return interfaceName;
         }
 
-        public byte[] route(byte[] destIPAddr){
+        public byte[] Route(byte[] destIPAddr){
 
            for (RoutingRow row : table) {
                byte[] maskResult = new byte[4];
@@ -103,10 +102,10 @@ public class RoutingTable {
 
                // 8로 떨어지지 않는 값은 255에서 뺀 값으로 계산.
                // int로 고쳐 사용할 땐 256을 더해 사용하면 됨.
-               if(remain != 0) subnetMask[loopCnt] = (255 - Math.pow(2, 8 - remain) + 1) - 256;
+               if(remain != 0) subnetMask[loopCnt] = (byte) ((255 - Math.pow(2, 8 - remain) + 1) - 256);
 
                for (int i = 0; i < 4; i++) {
-                   maskResult = (destIPAddr[i] & subnetMask[i]);
+                   maskResult[i] = (byte) (destIPAddr[i] & subnetMask[i]);
                }
 
                // 라우팅 될 row를 찾음
