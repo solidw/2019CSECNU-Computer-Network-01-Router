@@ -102,9 +102,10 @@ public class RoutingTable {
                }
 
                // 8로 떨어지지 않는 값은 255에서 뺀 값으로 계산.
+               // int로 고쳐 사용할 땐 256을 더해 사용하면 됨.
                if(remain != 0) subnetMask[loopCnt] = (255 - Math.pow(2, 8 - remain) + 1) - 256;
 
-               for (int i = 0; i < 1; i++) {
+               for (int i = 0; i < 4; i++) {
                    maskResult = (destIPAddr[i] & subnetMask[i]);
                }
 
