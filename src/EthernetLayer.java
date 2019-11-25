@@ -67,10 +67,6 @@ public class EthernetLayer implements BaseLayer {
 
     public ARPLayer arpLayer;
 
-    public FileAppLayer fileAppLayer;
-
-    public ChatAppLayer chatAppLayer;
-
     public EthernetLayer(String name) {
         pLayerName = name;
     }
@@ -83,16 +79,8 @@ public class EthernetLayer implements BaseLayer {
         this.m_Ethernet_Header.setDstAddr(addr);
     }
 
-    public void setFileAppLayer(FileAppLayer fileAppLayer) {
-        this.fileAppLayer = fileAppLayer;
-    }
-
     public void setArpLayer(ARPLayer arpLayer) {
         this.arpLayer = arpLayer;
-    }
-
-    public void setChatAppLayer(ChatAppLayer chatAppLayer) {
-        this.chatAppLayer = chatAppLayer;
     }
 
     public synchronized boolean Receive(byte[] input) {
@@ -157,10 +145,6 @@ public class EthernetLayer implements BaseLayer {
                 getCache = ARPLayer.ARPCacheTable.getCache(destIP);
                 getProxyCache = ARPLayer.ProxyARPEntry.get(destIP);
             }
-
-            fileAppLayer.setStart(true);
-            chatAppLayer.setStart(true);
-
             getCache = ARPLayer.ARPCacheTable.getCache(destIP);
             byte[] destMac = getCache != null ? getCache.getMacAddress() : getProxyCache.MacAddress();
             temp = addressing(input, input.length,
