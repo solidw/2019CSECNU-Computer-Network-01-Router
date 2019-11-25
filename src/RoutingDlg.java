@@ -1,9 +1,7 @@
 import java.awt.Color;
 import java.awt.EventQueue;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
+import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -11,14 +9,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 
-import javax.swing.JLabel;
 import java.awt.Font;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
 
 import java.awt.event.ActionListener;
 import java.net.InetAddress;
@@ -26,6 +17,8 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.StringTokenizer;
 import java.awt.event.ActionEvent;
 
@@ -431,8 +424,18 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 						flag[1] = rdbtnGateway.isSelected();
 						flag[2] = rdbtnHost.isSelected();
 						System.out.println(fullCount - zeroCount);
+
 						RoutingTable tbl = RoutingTable.getInstance();
-						tbl.add(tbl.getRoutingTableRow(ip.getAddress(), intNetmask, gateWayIp.getAddress(), flag, "interface1", 1));
+						tbl.add(tbl.getRoutingTableRow(ip.getAddress(), intNetmask, gateWayIp.getAddress(), flag, "interface1", 2));
+
+						tableModelRouting.setRowCount(0);
+
+						List<String[]> rows = tbl.GetTblRows();
+
+						for(String[] row : rows){
+							tableModelRouting.addRow(row);
+						}
+
 					} catch (UnknownHostException e1) {
 						e1.printStackTrace();
 					}

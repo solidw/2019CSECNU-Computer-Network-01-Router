@@ -1,6 +1,8 @@
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 public class RoutingTable {
     private ArrayList<RoutingRow> table = new ArrayList<>();
@@ -13,7 +15,26 @@ public class RoutingTable {
         return instance;
     }
 
-    public  RoutingRow getRoutingTableRow(byte[] destination, int netmask, byte[] gateway, boolean[] flags, String interfaceName, int metric){
+    public List<String[]> GetTblRows(){
+
+        List<String[]> tblRows = new ArrayList<>();
+
+        for (int i = 0; i < table.size(); i++){
+            String[] row = new String[6];
+
+            row[0] = table.get(i).getDestinationStr();
+            row[1] = table.get(i).getNetMaskStr();
+            row[2] = table.get(i).getGatewayStr();
+            row[3] = table.get(i).getFlagsStr();
+            row[4] = table.get(i).getInterfaceName();
+            row[5] = table.get(i).getMetricStr();
+
+            tblRows.add(row);
+        }
+        return tblRows;
+    }
+
+    public RoutingRow getRoutingTableRow(byte[] destination, int netmask, byte[] gateway, boolean[] flags, String interfaceName, int metric){
         return new RoutingRow(destination, netmask, gateway, flags, interfaceName, metric);
     }
 
@@ -31,6 +52,55 @@ public class RoutingTable {
         private boolean[] flags; //flags[0] = Up, flags[1] = Gateway, flags[2] = Host
         private String interfaceName;
         int metric;
+
+        public String getDestinationStr(){
+
+            int dest_0 = destination[0] < 0 ? destination[0] + 256 : destination[0];
+            int dest_1 = destination[1] < 0 ? destination[1] + 256 : destination[1];
+            int dest_2 = destination[2] < 0 ? destination[2] + 256 : destination[2];
+            int dest_3 = destination[3] < 0 ? destination[3] + 256 : destination[3];
+
+            return dest_0 + "-" + dest_1 + "-" + dest_2 + "-" + dest_3;
+        }
+
+        public String getNetMaskStr(){
+
+            String[] res = new String[4];
+            Arrays.fill(res, "0");
+
+            int loopCnt = netmask / 8;
+            int remain = netmask % 8;
+
+            for (int i = 0; i < loopCnt; i++){
+                res[i] = Integer.toString(255);
+            }
+
+            res[loopCnt] = Integer.toString((255 - (int) Math.pow(2, 8 - remain) + 1));
+
+            return res[0] + "-" + res[1] + "-" + res[2] + "-" + res[3];
+        }
+
+        public String getGatewayStr(){
+
+            int gateway_0 = gateway[0] < 0 ? gateway[0] + 256 : gateway[0];
+            int gateway_1 = gateway[1] < 0 ? gateway[1] + 256 : gateway[1];
+            int gateway_2 = gateway[2] < 0 ? gateway[2] + 256 : gateway[2];
+            int gateway_3 = gateway[3] < 0 ? gateway[3] + 256 : gateway[3];
+
+            return gateway_0 + "-" + gateway_1 + "-" + gateway_2 + "-" + gateway_3;
+        }
+
+        public String getFlagsStr(){
+            String res = "";
+            if(flags[0] == true) res += "U";
+            if(flags[1] == true) res += "G";
+            if(flags[2] == true) res += "H";
+            return res;
+        }
+
+        public String getMetricStr(){
+            return Integer.toString(metric);
+        }
 
         public RoutingRow(byte[] destination, int netmask, byte[] gateway, boolean[] flags, String interfaceName, int metric) {
             setDestination(destination);
