@@ -114,7 +114,8 @@ public class RoutingTable {
                }
            }
 
-           return null;
+           // 못 찾으면 default Row 반환
+           return table.get(table.size() - 1).destination;
         }
 
     }
