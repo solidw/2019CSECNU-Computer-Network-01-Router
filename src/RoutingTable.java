@@ -86,5 +86,37 @@ public class RoutingTable {
         public String getInterfaceName() {
             return interfaceName;
         }
+
+        public byte[] route(byte[] destIPAddr){
+
+           for (RoutingRow row : table) {
+               byte[] maskResult = new byte[4];
+               byte[] subnetMask = new byte[4];
+
+               int loopCnt = row.netmask / 8;
+               int remain = row.netmask % 8;
+
+               for (int i = 0; i < loopCnt; i++) {
+                   // 255로 채움
+                   subnetMask[i] = -1;
+               }
+
+               // 8로 떨어지지 않는 값은 255에서 뺀 값으로 계산.
+               // int로 고쳐 사용할 땐 256을 더해 사용하면 됨.
+               if(remain != 0) subnetMask[loopCnt] = (255 - Math.pow(2, 8 - remain) + 1) - 256;
+
+               for (int i = 0; i < 4; i++) {
+                   maskResult = (destIPAddr[i] & subnetMask[i]);
+               }
+
+               // 라우팅 될 row를 찾음
+               if(Arrays.equals(maskResult, row.destination)) {
+                   return row.destination;
+               }
+           }
+
+           return null;
+        }
+
     }
 }
