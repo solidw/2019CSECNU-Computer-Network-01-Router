@@ -1,9 +1,6 @@
-package arp;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Objects;
 
 public class ARPLayer implements BaseLayer {
 

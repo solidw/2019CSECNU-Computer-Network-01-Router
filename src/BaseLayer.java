@@ -1,5 +1,3 @@
-package arp;
-
 import java.util.ArrayList;
 
 public interface BaseLayer {
