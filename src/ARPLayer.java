@@ -160,7 +160,7 @@ public class ARPLayer implements BaseLayer {
 
             Proxy proxy = ProxyARPEntry.get(dstIp);
             if(proxy != null) {
-                byte[] data = swapSrcAndDst(input, senderIp, senderMac, proxy.IpAddress(), proxy.MacAddress());
+                byte[] data = swapSrcAndDst(input, senderIp, senderMac, proxy.IpAddress(), m_sHeader.srcMac);
                 GetUnderLayer().Send(data, data.length);
             }
         }
