@@ -93,13 +93,16 @@ public class RoutingTable {
                byte[] maskResult = new byte[4];
                byte[] subnetMask = new byte[4];
 
-               // netmask는 8, 16, 24, 32
                int loopCnt = row.netmask / 8;
+               int remain = row.netmask % 8;
 
                for (int i = 0; i < loopCnt; i++) {
                    // 255로 채움
                    subnetMask[i] = -1;
                }
+
+               // 8로 떨어지지 않는 값은 255에서 뺀 값으로 계산.
+               if(remain != 0) subnetMask[loopCnt] = (255 - Math.pow(2, 8 - remain) + 1) - 256;
 
                for (int i = 0; i < 1; i++) {
                    maskResult = (destIPAddr[i] & subnetMask[i]);
