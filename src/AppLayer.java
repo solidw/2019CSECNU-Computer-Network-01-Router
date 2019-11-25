@@ -41,7 +41,6 @@ public class AppLayer extends JFrame implements BaseLayer {
 
 
 	// field for layer
-	static TCPLayer tcpLayer;
 	static IPLayer ipLayer;
 	static ARPLayer arpLayer;
 	static EthernetLayer ethernetLayer;
@@ -78,7 +77,7 @@ public class AppLayer extends JFrame implements BaseLayer {
 		}
 
 		public void run(){
-			tcpLayer.ARPSend(input, 0);
+//			tcpLayer.ARPSend(input, 0);
 		}
 	}
 
@@ -164,11 +163,6 @@ public class AppLayer extends JFrame implements BaseLayer {
 		}
 
 		return ret;
-	}
-
-
-	public static void setTcpLayer(TCPLayer tcpLayer) {
-		AppLayer.tcpLayer = tcpLayer;
 	}
 
 	public static void setIpLayer(IPLayer ipLayer) {
