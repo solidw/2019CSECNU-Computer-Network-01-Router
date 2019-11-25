@@ -1,8 +1,9 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 public class RoutingTable {
-    public ArrayList<RoutingRow> table = new ArrayList<>();
+    private ArrayList<RoutingRow> table = new ArrayList<>();
     private static RoutingTable instance;
 
     public static RoutingTable getInstance() {
@@ -10,6 +11,11 @@ public class RoutingTable {
             instance = new RoutingTable();
         }
         return instance;
+    }
+
+    public void add(RoutingRow row) {
+        table.add(row);
+        Collections.sort(table);
     }
 
     private RoutingTable() {}
@@ -34,7 +40,12 @@ public class RoutingTable {
 //        for sorting
         @Override
         public int compareTo(RoutingRow row) {
-            return 0;
+            if(this.getNetmask() > row.getNetmask())
+                return -1;
+            else if(this.getNetmask() < row.getNetmask())
+                return 1;
+            else
+                return 0;
         }
 
 //        getter & setter
