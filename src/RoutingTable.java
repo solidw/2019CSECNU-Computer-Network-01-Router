@@ -34,6 +34,17 @@ public class RoutingTable {
         return tblRows;
     }
 
+    public void remove(byte[] destination){
+        RoutingRow routingRow;
+        for (int i = 0; i < table.size(); i++) {
+            routingRow = table.get(i);
+            if(Arrays.equals(destination, routingRow.destination)){
+                table.remove(i);
+                break;
+            }
+        }
+    }
+
     public RoutingRow getRoutingTableRow(byte[] destination, int netmask, byte[] gateway, boolean[] flags, String interfaceName, int metric){
         return new RoutingRow(destination, netmask, gateway, flags, interfaceName, metric);
     }
@@ -60,7 +71,7 @@ public class RoutingTable {
             int dest_2 = destination[2] < 0 ? destination[2] + 256 : destination[2];
             int dest_3 = destination[3] < 0 ? destination[3] + 256 : destination[3];
 
-            return dest_0 + "-" + dest_1 + "-" + dest_2 + "-" + dest_3;
+            return dest_0 + "." + dest_1 + "." + dest_2 + "." + dest_3;
         }
 
         public String getNetMaskStr(){
@@ -77,7 +88,7 @@ public class RoutingTable {
 
             res[loopCnt] = Integer.toString((255 - (int) Math.pow(2, 8 - remain) + 1));
 
-            return res[0] + "-" + res[1] + "-" + res[2] + "-" + res[3];
+            return res[0] + "." + res[1] + "." + res[2] + "." + res[3];
         }
 
         public String getGatewayStr(){
@@ -87,7 +98,7 @@ public class RoutingTable {
             int gateway_2 = gateway[2] < 0 ? gateway[2] + 256 : gateway[2];
             int gateway_3 = gateway[3] < 0 ? gateway[3] + 256 : gateway[3];
 
-            return gateway_0 + "-" + gateway_1 + "-" + gateway_2 + "-" + gateway_3;
+            return gateway_0 + "." + gateway_1 + "." + gateway_2 + "." + gateway_3;
         }
 
         public String getFlagsStr(){

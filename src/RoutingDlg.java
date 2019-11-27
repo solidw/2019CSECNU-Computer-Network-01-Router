@@ -264,6 +264,18 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 		JButton btnRoutingDelete = new JButton("Delete");
 		btnRoutingDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				String destIp;
+				int row = tableRouting.getSelectedRow() ;
+				if (row >= 0) {
+					destIp = (String)tableRouting.getValueAt(row, 0);
+					tableModelRouting.removeRow(tableRouting.getSelectedRow());
+					try {
+						byte[] bytesIp = InetAddress.getByName(destIp.trim()).getAddress();
+						ARPLayer.ProxyARPEntry.remove(bytesIp);
+					} catch (Exception exception) {
+						exception.printStackTrace();
+					}
+				}
 			}
 		});
 		btnRoutingDelete.setBounds(298, 399, 111, 31);
@@ -395,11 +407,11 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			routingDialogPane.add(textFieldGateway);
 
 			JButton btnAdd = new JButton("추가");
-			btnAdd.addActionListener(new java.awt.event.ActionListener() {
+			btnAdd.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					String ipAddr = textFieldDestination.getText();
-					String netMask = textFieldNetmask.getText();
-					String gateway = textFieldGateway.getText();
+					String ipAddr = textFieldDestination.getText().trim();
+					String netMask = textFieldNetmask.getText().trim();
+					String gateway = textFieldGateway.getText().trim();
 
 					InetAddress ip = null;
 					InetAddress gateWayIp = null;
@@ -449,7 +461,7 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			routingDialogPane.add(btnAdd);
 
 			JButton btnCancel = new JButton("취소");
-			btnCancel.addActionListener(new java.awt.event.ActionListener() {
+			btnCancel.addActionListener(new ActionListener() {
 
 				public void actionPerformed(ActionEvent e) {
 					dispose();
@@ -558,7 +570,7 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			proxyDialogPane.add(textFieldEthernetAddress);
 
 			JButton btnOk = new JButton("OK");
-			btnOk.addActionListener(new java.awt.event.ActionListener() {
+			btnOk.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					dispose();
 				}
@@ -571,7 +583,7 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			proxyDialogPane.add(btnOk);
 
 			JButton btnCancel = new JButton("Cancel");
-			btnCancel.addActionListener(new java.awt.event.ActionListener() {
+			btnCancel.addActionListener(new ActionListener() {
 
 				public void actionPerformed(ActionEvent e) {
 					dispose();
