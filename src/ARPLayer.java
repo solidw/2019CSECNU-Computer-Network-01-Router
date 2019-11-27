@@ -413,8 +413,10 @@ public class ARPLayer implements BaseLayer {
 
         public static void remove(byte[] ip) {
             for (Proxy item : entry) {
-                if(Arrays.equals(item.IpAddress(), ip))
+                if(Arrays.equals(item.IpAddress(), ip)) {
                     entry.remove(item);
+                    break;
+                }
             }
         }
     }
