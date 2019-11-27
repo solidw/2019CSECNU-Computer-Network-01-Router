@@ -1,3 +1,5 @@
+import com.sun.xml.internal.ws.server.provider.ProviderInvokerTube;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -8,6 +10,7 @@ public class IPLayer implements BaseLayer {
     public BaseLayer p_UnderLayer = null;
     public ARPLayer arpLayer;
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
+    private RoutingTable routingTable;
 
     _IP_HEADER m_iHeader = new _IP_HEADER();
     int HeaderSize = 20;
@@ -62,6 +65,7 @@ public class IPLayer implements BaseLayer {
 
     public IPLayer(String pName){
         pLayerName = pName;
+        routingTable = RoutingTable.getInstance();
         ResetHeader();
     }
 
