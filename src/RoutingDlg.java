@@ -193,6 +193,7 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			m_LayerMgr.GetLayer("Ip0").SetUnderLayer(m_LayerMgr.GetLayer("Arp0"));
 			m_LayerMgr.GetLayer("Ethernet0").SetUpperUnderLayer(m_LayerMgr.GetLayer("Arp0"));
 
+
 			m_LayerMgr.GetLayer("NI1").SetUpperUnderLayer(m_LayerMgr.GetLayer("Ethernet1"));
 			m_LayerMgr.GetLayer("Ethernet1").SetUpperUnderLayer(m_LayerMgr.GetLayer("Ip1"));
 			m_LayerMgr.GetLayer("Ip1").SetUnderLayer(m_LayerMgr.GetLayer("Arp1"));
@@ -230,8 +231,10 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			ethernetLayer[0].SetUpperLayer(ipLayer[0]);
 			ethernetLayer[1].SetUpperLayer(ipLayer[1]);
 
+
 			niLayer[0].SetAdapterNumber(0);
 			niLayer[1].SetAdapterNumber(1);
+
 
 			// 어떤 어댑터를 사용할지 결정한다.
 			// 디버깅을 통해 adapter list 를 이용하여 설정한다.
