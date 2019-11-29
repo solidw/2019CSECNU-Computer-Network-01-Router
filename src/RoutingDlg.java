@@ -1,3 +1,5 @@
+import org.jnetpcap.PcapIf;
+
 import java.awt.Color;
 import java.awt.EventQueue;
 
@@ -13,10 +15,7 @@ import java.awt.Font;
 
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.*;
 import java.awt.event.ActionEvent;
 
@@ -203,38 +202,40 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			ipLayer[0].setEthernetLayer(ethernetLayer[0]);
 			ipLayer[1].setEthernetLayer(ethernetLayer[1]);
 
-//			routingDlg.setIpLayer(ipLayer);
-//			routingDlg.setArpLayer(arpLayer);
-//			routingDlg.setEthernetLayer(ethernetLayer);
-//			routingDlg.setNiLayer(niLayer);
 //			각 NIC에 해당하는 MAC Address와 IP Address 를 set
-			ethernetLayer[0].setSrcAddr(niLayer[0].m_pAdapterList.get(0).getHardwareAddress());
-			ipLayer[0].setSrcIP(niLayer[0].m_pAdapterList.get(0).getAddresses().get(0).getAddr().getData());
-			arpLayer[0].setSrcIp(niLayer[0].m_pAdapterList.get(0).getAddresses().get(0).getAddr().getData());
-			arpLayer[0].setSrcMac(niLayer[0].m_pAdapterList.get(0).getHardwareAddress());
+			int index = 0;
+			Enumeration<NetworkInterface> eNI = NetworkInterface.getNetworkInterfaces();
+			while(eNI.hasMoreElements()) {
+				NetworkInterface ni = eNI.nextElement();
+//				ni를 사용 중이고 루프백이 아니면
+				if(ni.isUp() && !ni.isLoopback()) {
+					Enumeration<InetAddress> eIA = ni.getInetAddresses();
+					while(eIA.hasMoreElements()) {
+						InetAddress ia = eIA.nextElement();
+						if(ia instanceof Inet4Address) {
+//							ipv4의 경우만 세팅
+							ethernetLayer[index].setSrcAddr(ni.getHardwareAddress());
+							arpLayer[index].setSrcMac(ni.getHardwareAddress());
+							arpLayer[index].setSrcIp(ia.getAddress());
+							ipLayer[index].setSrcIP(ia.getAddress());
+						}
+					}
+					int iNum = 0;
+					for(PcapIf nic : niLayer[index].m_pAdapterList) {
+						if(Arrays.equals(nic.getHardwareAddress(), ni.getHardwareAddress())) {
+							break;
+						}
+						iNum++;
+					}
+//					nilayer 어댑터 세팅
+					niLayer[index].SetAdapterNumber(iNum);
+					if(++index > 1)
+						break;
+				}
+			}
 
-			ethernetLayer[1].setSrcAddr(niLayer[1].m_pAdapterList.get(1).getHardwareAddress());
-			ipLayer[1].setSrcIP(niLayer[1].m_pAdapterList.get(1).getAddresses().get(0).getAddr().getData());
-			arpLayer[1].setSrcIp(niLayer[1].m_pAdapterList.get(1).getAddresses().get(0).getAddr().getData());
-			arpLayer[1].setSrcMac(niLayer[1].m_pAdapterList.get(1).getHardwareAddress());
-
-//			ipLayer.setSrcIP(InetAddress.getLocalHost().getAddress());
-//			arpLayer.setSrcIp(InetAddress.getLocalHost().getAddress());
-//
-//			InetAddress presentAddr = InetAddress.getLocalHost();
-//			NetworkInterface net = NetworkInterface.getByInetAddress(presentAddr);
-//
-//			byte[] macAddressBytes = net.getHardwareAddress();
-//			arpLayer.setSrcMac(niLayer.getMacAddress());
-//			ethernetLayer.setSrcAddr(niLayer.getMacAddress());
-//
 			ethernetLayer[0].SetUpperLayer(ipLayer[0]);
 			ethernetLayer[1].SetUpperLayer(ipLayer[1]);
-
-
-			niLayer[0].SetAdapterNumber(0);
-			niLayer[1].SetAdapterNumber(1);
-
 
 			// 어떤 어댑터를 사용할지 결정한다.
 			// 디버깅을 통해 adapter list 를 이용하여 설정한다.
