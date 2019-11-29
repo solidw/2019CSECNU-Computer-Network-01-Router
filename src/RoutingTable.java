@@ -182,11 +182,11 @@ public class RoutingTable {
             return interfaceName;
         }
 
-
-
     }
 
     public byte[] Route(byte[] destIPAddr){
+
+        if (table.size() < 1) return null;
 
         for (RoutingRow row : table) {
             byte[] maskResult = new byte[4];

@@ -161,13 +161,9 @@ public class IPLayer implements BaseLayer {
             return false;
         }
 
-        System.out.println("ipLayer input: ");
-        System.out.println(input.toString());
-
         byte[] realDest = RoutingTable.getInstance().Route(targetIp);
 
-        System.out.println("ipLayer dest: ");
-        System.out.println(realDest.toString());
+        if (realDest == null) return false;
 
         input[16] = realDest[0];
         input[17] = realDest[1];
