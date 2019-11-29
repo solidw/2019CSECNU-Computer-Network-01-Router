@@ -182,37 +182,39 @@ public class RoutingTable {
             return interfaceName;
         }
 
-        public byte[] Route(byte[] destIPAddr){
 
-           for (RoutingRow row : table) {
-               byte[] maskResult = new byte[4];
-               byte[] subnetMask = new byte[4];
 
-               int loopCnt = row.netmask / 8;
-               int remain = row.netmask % 8;
+    }
 
-               for (int i = 0; i < loopCnt; i++) {
-                   // 255로 채움
-                   subnetMask[i] = -1;
-               }
+    public byte[] Route(byte[] destIPAddr){
 
-               // 8로 떨어지지 않는 값은 255에서 뺀 값으로 계산.
-               // int로 고쳐 사용할 땐 256을 더해 사용하면 됨.
-               if(remain != 0) subnetMask[loopCnt] = (byte) ((255 - Math.pow(2, 8 - remain) + 1) - 256);
+        for (RoutingRow row : table) {
+            byte[] maskResult = new byte[4];
+            byte[] subnetMask = new byte[4];
 
-               for (int i = 0; i < 4; i++) {
-                   maskResult[i] = (byte) (destIPAddr[i] & subnetMask[i]);
-               }
+            int loopCnt = row.netmask / 8;
+            int remain = row.netmask % 8;
 
-               // 라우팅 될 row를 찾음
-               if(Arrays.equals(maskResult, row.destination)) {
-                   return row.destination;
-               }
-           }
+            for (int i = 0; i < loopCnt; i++) {
+                // 255로 채움
+                subnetMask[i] = -1;
+            }
 
-           // 못 찾으면 default Row 반환
-           return table.get(table.size() - 1).destination;
+            // 8로 떨어지지 않는 값은 255에서 뺀 값으로 계산.
+            // int로 고쳐 사용할 땐 256을 더해 사용하면 됨.
+            if(remain != 0) subnetMask[loopCnt] = (byte) ((255 - Math.pow(2, 8 - remain) + 1) - 256);
+
+            for (int i = 0; i < 4; i++) {
+                maskResult[i] = (byte) (destIPAddr[i] & subnetMask[i]);
+            }
+
+            // 라우팅 될 row를 찾음
+            if(Arrays.equals(maskResult, row.destination)) {
+                return row.destination;
+            }
         }
 
+        // 못 찾으면 default Row 반환
+        return table.get(table.size() - 1).destination;
     }
 }

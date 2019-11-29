@@ -150,13 +150,35 @@ public class IPLayer implements BaseLayer {
 
     @Override
     public synchronized boolean Receive(byte[] input) {
+
         int startOfDestIp = 16;
+
         byte[] targetIp = new byte[]{
                 input[startOfDestIp], input[startOfDestIp+ 1], input[startOfDestIp + 2], input[startOfDestIp + 3]};
-        if(Arrays.equals(targetIp, this.m_iHeader.srcIP)){
-            return this.GetUpperLayer(0).Receive(removeHeader(input));
+
+        // IP Addr 확인
+        if(!Arrays.equals(targetIp, this.m_iHeader.srcIP)){
+            return false;
         }
-        return false;
+
+        System.out.println("ipLayer input: ");
+        System.out.println(input.toString());
+
+        byte[] realDest = RoutingTable.getInstance().Route(targetIp);
+
+        System.out.println("ipLayer dest: ");
+        System.out.println(realDest.toString());
+
+        input[16] = realDest[0];
+        input[17] = realDest[1];
+        input[18] = realDest[2];
+        input[19] = realDest[3];
+
+        if(p_UnderLayer.Send(input, input.length) == false){
+            return false;
+        }
+
+        return true;
     }
 
     @Override
