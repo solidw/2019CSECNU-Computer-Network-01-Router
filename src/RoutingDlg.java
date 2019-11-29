@@ -325,6 +325,18 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 		JButton btnCacheDelete = new JButton("Delete");
 		btnCacheDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				String ip;
+				int row = tableCache.getSelectedRow() ;
+				if (row >= 0) {
+					ip = (String)tableModelCache.getValueAt(row, 1);
+					tableModelCache.removeRow(row);
+					try {
+						byte[] bytesIp = InetAddress.getByName(ip.trim()).getAddress();
+						ARPLayer.ARPCacheTable.remove(bytesIp);
+					} catch (UnknownHostException event) {
+						event.printStackTrace();
+					}
+				}
 			}
 		});
 		btnCacheDelete.setBounds(136, 179, 111, 31);
@@ -356,6 +368,18 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 		JButton btnProxyDelete = new JButton("Delete");
 		btnProxyDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				String ip;
+				int row = tableProxy.getSelectedRow() ;
+				if (row >= 0) {
+					ip = (String)tableProxy.getValueAt(row, 1);
+					tableModelProxy.removeRow(tableProxy.getSelectedRow());
+					try {
+						byte[] bytesIp = InetAddress.getByName(ip.trim()).getAddress();
+						ARPLayer.ProxyARPEntry.remove(bytesIp);
+					} catch (Exception exception) {
+						exception.printStackTrace();
+					}
+				}
 			}
 		});
 		btnProxyDelete.setBounds(214, 173, 111, 31);
@@ -609,6 +633,20 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			btnOk.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					dispose();
+					String temp[] = { (String) comboBoxDevice.getSelectedItem(), textFieldIpAddress.getText(),
+							textFieldEthernetAddress.getText() };
+
+					tableModelProxy.addRow(temp);
+
+					try {
+						InetAddress srcIp = InetAddress.getByName(temp[1].trim());
+						byte[] bytesIp = srcIp.getAddress();
+
+						ARPLayer.Proxy proxy = arpLayer[0].getProxy(temp[0], bytesIp, parsingSrcMACAddress(temp[2].trim()));
+						ARPLayer.ProxyARPEntry.entry.add(proxy);
+					} catch (UnknownHostException e1) {
+						e1.printStackTrace();
+					}
 				}
 			});
 			btnOk.setBounds(41, 140, 97, 23);
