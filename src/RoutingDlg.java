@@ -159,7 +159,7 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 	public static void setNiLayer(NILayer niLayer) {
 		AppLayer.niLayer = niLayer;
 	}
-	
+
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		RoutingDlg routingDlg;
@@ -201,6 +201,9 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			// ip레이어에 이더넷레이어 설정
 			ipLayer[0].setEthernetLayer(ethernetLayer[0]);
 			ipLayer[1].setEthernetLayer(ethernetLayer[1]);
+
+			arpLayer[0].setRoutingDlg(routingDlg);
+			arpLayer[1].setRoutingDlg(routingDlg);
 
 //			각 NIC에 해당하는 MAC Address와 IP Address 를 set
 			int index = 0;
