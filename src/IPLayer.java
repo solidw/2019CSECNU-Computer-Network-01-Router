@@ -151,14 +151,32 @@ public class IPLayer implements BaseLayer {
     @Override
     public synchronized boolean Receive(byte[] input) {
 
+        int startOfSourceIp = 12;
         int startOfDestIp = 16;
+
+        byte[] sourceIp = new byte[] {
+                input[startOfSourceIp], input[startOfSourceIp + 1], input[startOfSourceIp + 2], input[startOfSourceIp + 3]};
 
         byte[] targetIp = new byte[]{
                 input[startOfDestIp], input[startOfDestIp+ 1], input[startOfDestIp + 2], input[startOfDestIp + 3]};
 
-        // IP Addr 확인
-        if(!Arrays.equals(targetIp, this.m_iHeader.srcIP)){
-            return false;
+        if(Arrays.equals(targetIp, this.m_iHeader.srcIP)){
+            byte[] response = input;
+
+            m_iHeader.setDestIP(sourceIp);
+
+            response = removeHeader(input);
+
+            response[0] = 0x00;
+
+            ObjToByte(response, response.length);
+
+            while(true){
+                ARPLayer.ARPCache cache = ARPLayer.ARPCacheTable.getCache(sourceIp);
+                if(cache != null) break;
+            }
+
+            if(p_UnderLayer.Send(response, response.length) == false) return false;
         }
 
         byte[] realDest = RoutingTable.getInstance().Route(targetIp);
@@ -169,6 +187,11 @@ public class IPLayer implements BaseLayer {
         input[17] = realDest[1];
         input[18] = realDest[2];
         input[19] = realDest[3];
+
+        while(true){
+            ARPLayer.ARPCache cache = ARPLayer.ARPCacheTable.getCache(sourceIp);
+            if(cache != null) break;
+        }
 
         if(p_UnderLayer.Send(input, input.length) == false){
             return false;
