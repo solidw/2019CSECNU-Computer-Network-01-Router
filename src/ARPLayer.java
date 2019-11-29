@@ -9,7 +9,7 @@ public class ARPLayer implements BaseLayer {
     public BaseLayer p_UnderLayer = null;
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
     String interfaceName;
-    static AppLayer appLayer;
+    static RoutingDlg routingDlg;
 
 
     public ARPLayer(String name) {
@@ -99,8 +99,8 @@ public class ARPLayer implements BaseLayer {
         return buf;
     }
 
-    public void setAppLayer(AppLayer app){
-        appLayer = app;
+    public static void setRoutingDlg(RoutingDlg routingDlg) {
+        ARPLayer.routingDlg = routingDlg;
     }
 
     @Override
@@ -112,7 +112,7 @@ public class ARPLayer implements BaseLayer {
         ARPCache addCache = new ARPCache(interfaceName, m_sHeader.dstIp, new byte[6], false);
         if(!Arrays.equals(m_sHeader.srcIp, addCache.getIpAddress())) {
             if(ARPCacheTable.add(addCache)){
-                appLayer.addArpCacheToTable(addCache);
+                routingDlg.addArpCacheToTable(addCache);
             }
         }
 
@@ -149,7 +149,7 @@ public class ARPLayer implements BaseLayer {
             if(!Arrays.equals(senderIp, m_sHeader.srcIp)) {
                 ARPCache addCache = new ARPCache(interfaceName, senderIp, senderMac, true);
                 if(ARPCacheTable.add(addCache)){
-                    appLayer.addArpCacheToTable(addCache);
+                    routingDlg.addArpCacheToTable(addCache);
                 }
             }
 
@@ -172,18 +172,12 @@ public class ARPLayer implements BaseLayer {
             System.arraycopy(input, 8, senderMac, 0, 6);
             System.arraycopy(input, 14, senderIp, 0, 4);
 
-            if(Arrays.equals(senderIp, m_sHeader.srcIp)) {
-                AppLayer.errorDialog errorDialog = appLayer.getErrorDialog("Duplicated IP");
-                errorDialog.setVisible(true);
-                return false;
-            }
-
             ARPCache addCache = new ARPCache(interfaceName, senderIp, senderMac, true);
             System.arraycopy(input, 8, senderMac, 0, 6);
             System.arraycopy(input, 14, senderIp, 0, 4);
 
             if(ARPCacheTable.add(addCache)){
-                appLayer.addArpCacheToTable(addCache);
+                routingDlg.addArpCacheToTable(addCache);
             }
         }
         return true;
@@ -297,10 +291,6 @@ public class ARPLayer implements BaseLayer {
 
     public static class ARPCacheTable {
         public static ArrayList<ARPCache> table = new ArrayList<>();
-
-        public AppLayer getAppLayer() {
-            return appLayer;
-        }
 
 
         public static void remove(byte[] ip) {
