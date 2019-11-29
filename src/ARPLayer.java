@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ARPLayer implements BaseLayer {
 
@@ -290,8 +292,7 @@ public class ARPLayer implements BaseLayer {
     }
 
     public static class ARPCacheTable {
-        public static ArrayList<ARPCache> table = new ArrayList<>();
-
+        public static List<ARPCache> table = new CopyOnWriteArrayList<>();
 
         public static void remove(byte[] ip) {
 
@@ -309,17 +310,19 @@ public class ARPLayer implements BaseLayer {
             table.clear();
         }
 
-
-
         public static ARPCache getCache(byte[] ip) {
-            for (ARPCache item : table) {
+
+            Iterator<ARPCache> iter = ARPCacheTable.table.iterator();
+
+            while (iter.hasNext()) {
+                ARPCache item = iter.next();
                 if(Arrays.equals(item.IpAddress(), ip))
                     return item;
             }
             return null;
         }
 
-        public static ArrayList<ARPCache> getTable() {
+        public static List<ARPCache> getTable() {
             return table;
         }
 

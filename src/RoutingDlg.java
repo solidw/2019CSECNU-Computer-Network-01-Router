@@ -231,7 +231,7 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 						iNum++;
 					}
 //					nilayer 어댑터 세팅
-					niLayer[index].SetAdapterNumber(iNum);
+//					niLayer[index].SetAdapterNumber(iNum);
 					if(++index > 1)
 						break;
 				}
@@ -239,6 +239,8 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 
 			ethernetLayer[0].SetUpperLayer(ipLayer[0]);
 			ethernetLayer[1].SetUpperLayer(ipLayer[1]);
+			niLayer[0].SetAdapterNumber(0);
+			niLayer[1].SetAdapterNumber(1);
 
 			// 어떤 어댑터를 사용할지 결정한다.
 			// 디버깅을 통해 adapter list 를 이용하여 설정한다.

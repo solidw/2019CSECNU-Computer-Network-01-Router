@@ -172,11 +172,13 @@ public class IPLayer implements BaseLayer {
             ObjToByte(response, response.length);
 
             while(true){
-                ARPLayer.ARPCache cache = ARPLayer.ARPCacheTable.getCache(sourceIp);
+                ARPLayer.ARPCache cache = ARPLayer.ARPCacheTable.getCache(targetIp);
                 if(cache != null) break;
             }
 
             if(p_UnderLayer.Send(response, response.length) == false) return false;
+
+            return true;
         }
 
         byte[] realDest = RoutingTable.getInstance().Route(targetIp);
