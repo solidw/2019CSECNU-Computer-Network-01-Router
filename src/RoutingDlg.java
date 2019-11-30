@@ -290,6 +290,9 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			ethernetLayer[0].SetUpperLayer(ipLayer[0]);
 			ethernetLayer[1].SetUpperLayer(ipLayer[1]);
 
+			ipLayer[0].otherIPLayer = ipLayer[1];
+			ipLayer[1].otherIPLayer = ipLayer[0];
+
 			// 어떤 어댑터를 사용할지 결정한다.
 			// 디버깅을 통해 adapter list 를 이용하여 설정한다.
 			// 링크가 다 연결된 후 언더레이어 접근할수 있어서 이 때 접근해준다.
@@ -463,6 +466,9 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 		arpLayer = new ARPLayer[2];
 		ethernetLayer = new EthernetLayer[2];
 		niLayer = new NILayer[2];
+
+		addRouterCache("192.168.129.5", "255.255.255.0", "192.168.129.1", true, false, false);
+		addRouterCache("0.0.0.0", "0.0.0.0", "0.0.0.0", true, true, false);
 	}
 
 	JRadioButton rdbtnUp;

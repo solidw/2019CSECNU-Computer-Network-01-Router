@@ -1,4 +1,5 @@
 import com.sun.xml.internal.ws.server.provider.ProviderInvokerTube;
+import sun.plugin.javascript.navig4.Layer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,6 +12,7 @@ public class IPLayer implements BaseLayer {
     public ARPLayer arpLayer;
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
     private RoutingTable routingTable;
+    public IPLayer otherIPLayer;
 
     _IP_HEADER m_iHeader = new _IP_HEADER();
     int HeaderSize = 20;
@@ -169,10 +171,10 @@ public class IPLayer implements BaseLayer {
 
             response[0] = 0x00;
 
-            ObjToByte(response, response.length);
+            response = ObjToByte(response, response.length);
 
             while(true){
-                ARPLayer.ARPCache cache = ARPLayer.ARPCacheTable.getCache(targetIp);
+                ARPLayer.ARPCache cache = ARPLayer.ARPCacheTable.getCache(sourceIp);
                 if(cache != null) break;
             }
 
@@ -190,12 +192,16 @@ public class IPLayer implements BaseLayer {
         input[18] = realDest[2];
         input[19] = realDest[3];
 
+        ARPLayer.ARPCache cache = null;
+
         while(true){
-            ARPLayer.ARPCache cache = ARPLayer.ARPCacheTable.getCache(sourceIp);
+            cache = ARPLayer.ARPCacheTable.getCache(sourceIp);
             if(cache != null) break;
         }
 
-        if(p_UnderLayer.Send(input, input.length) == false){
+        otherIPLayer.ethernetLayer.setDstAddr(cache.getMacAddress());
+
+        if(otherIPLayer.p_UnderLayer.Send(input, input.length) == false){
             return false;
         }
 
