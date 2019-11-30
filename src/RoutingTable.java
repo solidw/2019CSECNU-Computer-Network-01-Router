@@ -24,7 +24,7 @@ public class RoutingTable {
 
             row[0] = table.get(i).getDestinationStr();
             row[1] = table.get(i).getNetMaskStr();
-            row[2] = table.get(i).getGatewayStr();
+            row[2] = table.get(i).getFlags()[1] ? table.get(i).getGatewayStr() : "*";
             row[3] = table.get(i).getFlagsStr();
             row[4] = table.get(i).getInterfaceName();
             row[5] = table.get(i).getMetricStr();
@@ -184,7 +184,7 @@ public class RoutingTable {
 
     }
 
-    public byte[] Route(byte[] destIPAddr){
+    public RoutingRow Route(byte[] destIPAddr){
 
         if (table.size() < 1) return null;
 
@@ -210,11 +210,11 @@ public class RoutingTable {
 
             // 라우팅 될 row를 찾음
             if(Arrays.equals(maskResult, row.destination)) {
-                return row.destination;
+                return row;
             }
         }
 
         // 못 찾으면 default Row 반환
-        return table.get(table.size() - 1).destination;
+        return table.get(table.size() - 1);
     }
 }

@@ -162,6 +162,7 @@ public class IPLayer implements BaseLayer {
         byte[] targetIp = new byte[]{
                 input[startOfDestIp], input[startOfDestIp+ 1], input[startOfDestIp + 2], input[startOfDestIp + 3]};
 
+//        라우터에게 직접 보내는 ping인 경우
         if(Arrays.equals(targetIp, this.m_iHeader.srcIP)){
             byte[] response = input;
 
@@ -183,23 +184,65 @@ public class IPLayer implements BaseLayer {
             return true;
         }
 
-        byte[] realDest = RoutingTable.getInstance().Route(targetIp);
+        RoutingTable.RoutingRow row = RoutingTable.getInstance().Route(targetIp);
+//       아직 라우팅 테이블 채워지지 않았을 때
+        if (row == null) return false;
 
-        if (realDest == null) return false;
 
-        input[16] = realDest[0];
-        input[17] = realDest[1];
-        input[18] = realDest[2];
-        input[19] = realDest[3];
-
-        ARPLayer.ARPCache cache = null;
-
-        while(true){
-            cache = ARPLayer.ARPCacheTable.getCache(sourceIp);
-            if(cache != null) break;
+        char currentPort = this.GetLayerName().charAt(2);
+        char routePort = row.getInterfaceName().charAt(10);
+        if(currentPort == routePort) {
+            //      현재 인터페이스에 매칭되었을 때
+            if(row.getFlags()[0] == true && row.getFlags()[1] == false) {
+                //flag G
+                arpLayer.setDstIp(targetIp);
+                arpLayer.Send(new byte[20], 20);
+                ARPLayer.ARPCache cache = null;
+                while(true){
+                    cache = ARPLayer.ARPCacheTable.getCache(sourceIp);
+                    if(cache != null) break;
+                }
+                this.ethernetLayer.m_Ethernet_Header.setDstAddr(cache.getMacAddress());
+                this.p_UnderLayer.Send(input, input.length);
+            } else if (row.getFlags()[0] == true && row.getFlags()[1] == true) {
+                //flag UG
+                arpLayer.setDstIp(row.getGateway());
+                arpLayer.Send(new byte[20], 20);
+                ARPLayer.ARPCache cache = null;
+                while(true){
+                    cache = ARPLayer.ARPCacheTable.getCache(sourceIp);
+                    if(cache != null) break;
+                }
+                this.ethernetLayer.m_Ethernet_Header.setDstAddr(cache.getMacAddress());
+                this.p_UnderLayer.Send(input, input.length);
+            }
         }
-
-        otherIPLayer.ethernetLayer.setDstAddr(cache.getMacAddress());
+//        다른 인터페이스에 매칭되었을 때
+        else {
+            if(row.getFlags()[0] == true && row.getFlags()[1] == false) {
+                //flag G
+                otherIPLayer.arpLayer.setDstIp(targetIp);
+                otherIPLayer.arpLayer.Send(new byte[20], 20);
+                ARPLayer.ARPCache cache = null;
+                while(true){
+                    cache = ARPLayer.ARPCacheTable.getCache(sourceIp);
+                    if(cache != null) break;
+                }
+                otherIPLayer.ethernetLayer.m_Ethernet_Header.setDstAddr(cache.getMacAddress());
+                otherIPLayer.p_UnderLayer.Send(input, input.length);
+            } else if (row.getFlags()[0] == true && row.getFlags()[1] == true) {
+                //flag UG
+                otherIPLayer.arpLayer.setDstIp(row.getGateway());
+                otherIPLayer.arpLayer.Send(new byte[20], 20);
+                ARPLayer.ARPCache cache = null;
+                while(true){
+                    cache = ARPLayer.ARPCacheTable.getCache(sourceIp);
+                    if(cache != null) break;
+                }
+                otherIPLayer.ethernetLayer.m_Ethernet_Header.setDstAddr(cache.getMacAddress());
+                otherIPLayer.p_UnderLayer.Send(input, input.length);
+            }
+        }
 
         if(otherIPLayer.p_UnderLayer.Send(input, input.length) == false){
             return false;
