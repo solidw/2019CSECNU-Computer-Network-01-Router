@@ -188,7 +188,6 @@ public class IPLayer implements BaseLayer {
 //       아직 라우팅 테이블 채워지지 않았을 때
         if (row == null) return false;
 
-
         char currentPort = this.GetLayerName().charAt(2);
         char routePort = row.getInterfaceName().charAt(10);
         if(currentPort == routePort) {

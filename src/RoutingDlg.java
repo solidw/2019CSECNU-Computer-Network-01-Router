@@ -160,7 +160,7 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 		AppLayer.niLayer = niLayer;
 	}
 
-	public boolean addRouterCache(String ipAddr, String netMask, String gateWay, boolean up, boolean isGateWay, boolean host){
+	public boolean addRouterCache(String ipAddr, String netMask, String gateWay, boolean up, boolean isGateWay, boolean host, String interfaceName){
 		InetAddress ip = null;
 		InetAddress gateWayIp = null;
 		try {
@@ -186,7 +186,7 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			System.out.println(fullCount - zeroCount);
 
 			RoutingTable tbl = RoutingTable.getInstance();
-			tbl.add(tbl.getRoutingTableRow(ip.getAddress(), intNetmask, gateWayIp.getAddress(), flag, "interface1", 2));
+			tbl.add(tbl.getRoutingTableRow(ip.getAddress(), intNetmask, gateWayIp.getAddress(), flag, interfaceName, 2));
 
 			tableModelRouting.setRowCount(0);
 
@@ -264,11 +264,13 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 							arpLayer[index].setSrcMac(ni.getHardwareAddress());
 							arpLayer[index].setSrcIp(ia.getAddress());
 							ipLayer[index].setSrcIP(ia.getAddress());
+							System.out.format("Adapter %d IP : %s\n", index, ia.getHostAddress());
 						}
 					}
 					while(true) {
 						int iNum = 0;
 						boolean nicFound = false;
+
 						for(PcapIf nic : niLayer[index].m_pAdapterList) {
 							if(Arrays.equals(nic.getHardwareAddress(), ni.getHardwareAddress())) {
 //								nilayer 어댑터 세팅
@@ -469,8 +471,9 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 		ethernetLayer = new EthernetLayer[2];
 		niLayer = new NILayer[2];
 
-		addRouterCache("192.168.129.5", "255.255.255.0", "192.168.129.1", true, false, false);
-		addRouterCache("0.0.0.0", "0.0.0.0", "0.0.0.0", true, true, false);
+		addRouterCache("192.168.129.0", "255.255.255.0", "192.168.129.1", true, false, false, "interface 1");
+		addRouterCache("168.188.129.0", "255.255.255.0", "192.168.129.1", true, false, false, "interface 0");
+		addRouterCache("0.0.0.0", "0.0.0.0", "192.168.129.5", true, true, false, "interface 1");
 	}
 
 	JRadioButton rdbtnUp;
