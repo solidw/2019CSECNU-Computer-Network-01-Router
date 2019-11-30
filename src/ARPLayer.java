@@ -115,6 +115,7 @@ public class ARPLayer implements BaseLayer {
         if(!Arrays.equals(m_sHeader.srcIp, addCache.getIpAddress())) {
             if(ARPCacheTable.add(addCache)){
                 routingDlg.addArpCacheToTable(addCache);
+                System.out.println(this.GetLayerName());
             }
         }
 
@@ -152,6 +153,7 @@ public class ARPLayer implements BaseLayer {
                 ARPCache addCache = new ARPCache(interfaceName, senderIp, senderMac, true);
                 if(ARPCacheTable.add(addCache)){
                     routingDlg.addArpCacheToTable(addCache);
+                    System.out.println(this.GetLayerName());
                 }
             }
 
@@ -301,7 +303,7 @@ public class ARPLayer implements BaseLayer {
             while(iter.hasNext()) {
                 ARPCache cache = iter.next();
                 if(Arrays.equals(cache.IpAddress(), ip)){
-                    iter.remove();
+                    table.remove(cache);
                 }
             }
         }
