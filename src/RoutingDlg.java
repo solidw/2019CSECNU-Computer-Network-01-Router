@@ -223,15 +223,22 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 							ipLayer[index].setSrcIP(ia.getAddress());
 						}
 					}
-					int iNum = 0;
-					for(PcapIf nic : niLayer[index].m_pAdapterList) {
-						if(Arrays.equals(nic.getHardwareAddress(), ni.getHardwareAddress())) {
-							break;
+					while(true) {
+						int iNum = 0;
+						boolean nicFound = false;
+						for(PcapIf nic : niLayer[index].m_pAdapterList) {
+							if(Arrays.equals(nic.getHardwareAddress(), ni.getHardwareAddress())) {
+//								nilayer 어댑터 세팅
+								niLayer[index].SetAdapterNumber(iNum);
+								nicFound = true;
+								break;
+							}
+							iNum++;
 						}
-						iNum++;
+						if(nicFound)
+							break;
+						niLayer[index].SetAdapterList();
 					}
-//					nilayer 어댑터 세팅
-//					niLayer[index].SetAdapterNumber(iNum);
 					if(++index > 1)
 						break;
 				}
