@@ -160,6 +160,49 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 		AppLayer.niLayer = niLayer;
 	}
 
+	public boolean addRouterCache(String ipAddr, String netMask, String gateWay, boolean up, boolean isGateWay, boolean host){
+		InetAddress ip = null;
+		InetAddress gateWayIp = null;
+		try {
+			int fullCount = 32;
+			int zeroCount = 0;
+			int intNetmask;
+			long mask = ipToLong(netMask);
+			for (int i = 0; i < 32; i++) {
+				if((mask & 1) == 0){
+					zeroCount++;
+				}else{
+					break;
+				}
+				mask  = mask >> 1;
+			}
+			ip = InetAddress.getByName(ipAddr);
+			gateWayIp = InetAddress.getByName(gateWay);
+			intNetmask = fullCount - zeroCount;
+			boolean[] flag = new boolean[3];
+			flag[0] = up;
+			flag[1] = isGateWay;
+			flag[2] = host;
+			System.out.println(fullCount - zeroCount);
+
+			RoutingTable tbl = RoutingTable.getInstance();
+			tbl.add(tbl.getRoutingTableRow(ip.getAddress(), intNetmask, gateWayIp.getAddress(), flag, "interface1", 2));
+
+			tableModelRouting.setRowCount(0);
+
+			List<String[]> rows = tbl.GetTblRows();
+
+			for(String[] row : rows){
+				tableModelRouting.addRow(row);
+			}
+			return true;
+
+		} catch (UnknownHostException e1) {
+			e1.printStackTrace();
+			return false;
+		}
+	}
+
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		RoutingDlg routingDlg;
