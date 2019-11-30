@@ -291,7 +291,9 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			ethernetLayer[1].SetUpperLayer(ipLayer[1]);
 
 			ipLayer[0].otherIPLayer = ipLayer[1];
+			ipLayer[0].arpLayer = arpLayer[0];
 			ipLayer[1].otherIPLayer = ipLayer[0];
+            ipLayer[1].arpLayer = arpLayer[1];
 
 			// 어떤 어댑터를 사용할지 결정한다.
 			// 디버깅을 통해 adapter list 를 이용하여 설정한다.
