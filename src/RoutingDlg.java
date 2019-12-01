@@ -450,9 +450,17 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 		ethernetLayer = new EthernetLayer[2];
 		niLayer = new NILayer[2];
 
-		addRouterCache("169.254.49.0", "255.255.255.0", "192.168.129.1", true, false, false, "interface 1");
-		addRouterCache("168.188.129.0", "255.255.255.0", "192.168.129.1", true, false, false, "interface 0");
-		addRouterCache("0.0.0.0", "0.0.0.0", "169.254.49.5", true, true, false, "interface 1");
+		// R1's Routing Table
+		addRouterCache("192.168.1.0", "255.255.255.0", "0.0.0.0", true, false, false, "interface 0");
+		addRouterCache("192.168.2.0", "255.255.255.0", "0.0.0.0", true, false, false, "interface 1");
+		addRouterCache("192.168.0.0", "255.255.0.0", "0.0.0.0", true, false, false, "interface 1");
+		addRouterCache("0.0.0.0", "0.0.0.0", "192.168.2.1", true, true, false, "interface 1");
+
+		// R2's Routing Table
+		addRouterCache("192.168.1.0", "255.255.255.0", "192.168.2.1", true, true, false, "interface 0");
+		addRouterCache("192.168.2.0", "255.255.255.0", "0.0.0.0", true, false, false, "interface 0");
+		addRouterCache("192.168.3.0", "255.255.255.0", "0.0.0.0", true, false, false, "interface 1");
+		addRouterCache("0.0.0.0", "0.0.0.0", "192.168.2.1", true, true, false, "interface 0");
 	}
 
 	JRadioButton rdbtnUp;
