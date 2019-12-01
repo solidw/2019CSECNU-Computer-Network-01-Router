@@ -83,7 +83,7 @@ public class EthernetLayer implements BaseLayer {
         this.arpLayer = arpLayer;
     }
 
-    public synchronized boolean Receive(byte[] input) {
+    public boolean Receive(byte[] input) {
 
         int frameType = byte2ToInt(input[12], input[13]);
 

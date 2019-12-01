@@ -1,7 +1,6 @@
 import org.jnetpcap.PcapIf;
 
 import java.awt.Color;
-import java.awt.EventQueue;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
@@ -144,23 +143,7 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 		return ret;
 	}
 
-	public static void setIpLayer(IPLayer ipLayer) {
-		AppLayer.ipLayer = ipLayer;
-	}
-
-	public static void setArpLayer(ARPLayer arpLayer) {
-		AppLayer.arpLayer = arpLayer;
-	}
-
-	public static void setEthernetLayer(EthernetLayer ethernetLayer) {
-		AppLayer.ethernetLayer = ethernetLayer;
-	}
-
-	public static void setNiLayer(NILayer niLayer) {
-		AppLayer.niLayer = niLayer;
-	}
-
-	public boolean addRouterCache(String ipAddr, String netMask, String gateWay, boolean up, boolean isGateWay, boolean host){
+	public boolean addRouterCache(String ipAddr, String netMask, String gateWay, boolean up, boolean isGateWay, boolean host, String interfaceName){
 		InetAddress ip = null;
 		InetAddress gateWayIp = null;
 		try {
@@ -183,10 +166,10 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			flag[0] = up;
 			flag[1] = isGateWay;
 			flag[2] = host;
-			System.out.println(fullCount - zeroCount);
+//			System.out.println(fullCount - zeroCount);
 
 			RoutingTable tbl = RoutingTable.getInstance();
-			tbl.add(tbl.getRoutingTableRow(ip.getAddress(), intNetmask, gateWayIp.getAddress(), flag, "interface1", 2));
+			tbl.add(tbl.getRoutingTableRow(ip.getAddress(), intNetmask, gateWayIp.getAddress(), flag, interfaceName, 2));
 
 			tableModelRouting.setRowCount(0);
 
@@ -207,7 +190,7 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 		// TODO Auto-generated method stub
 		RoutingDlg routingDlg;
 		routingDlg = new RoutingDlg("Routing");
-	
+
 		try {
 			m_LayerMgr.AddLayer(routingDlg);
 
@@ -239,11 +222,7 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			m_LayerMgr.GetLayer("NI1").SetUpperUnderLayer(m_LayerMgr.GetLayer("Ethernet1"));
 			m_LayerMgr.GetLayer("Ethernet1").SetUpperUnderLayer(m_LayerMgr.GetLayer("Ip1"));
 			m_LayerMgr.GetLayer("Ip1").SetUnderLayer(m_LayerMgr.GetLayer("Arp1"));
-			m_LayerMgr.GetLayer("Ethernet1").SetUpperUnderLayer(m_LayerMgr.GetLayer("Arp1"));
-
-			// ip레이어에 이더넷레이어 설정
-			ipLayer[0].setEthernetLayer(ethernetLayer[0]);
-			ipLayer[1].setEthernetLayer(ethernetLayer[1]);
+			m_LayerMgr.GetLayer("Ethernet1").SetUpperUnderLayer(m_LayerMgr.GetLayer("Arp1"));;
 
 			arpLayer[0].setRoutingDlg(routingDlg);
 			arpLayer[1].setRoutingDlg(routingDlg);
@@ -264,11 +243,13 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 							arpLayer[index].setSrcMac(ni.getHardwareAddress());
 							arpLayer[index].setSrcIp(ia.getAddress());
 							ipLayer[index].setSrcIP(ia.getAddress());
+							System.out.format("Adapter %d IP : %s\n", index, ia.getHostAddress());
 						}
 					}
 					while(true) {
 						int iNum = 0;
 						boolean nicFound = false;
+
 						for(PcapIf nic : niLayer[index].m_pAdapterList) {
 							if(Arrays.equals(nic.getHardwareAddress(), ni.getHardwareAddress())) {
 //								nilayer 어댑터 세팅
@@ -287,13 +268,13 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 				}
 			}
 
-			ethernetLayer[0].SetUpperLayer(ipLayer[0]);
-			ethernetLayer[1].SetUpperLayer(ipLayer[1]);
+			System.out.println("Setting Adapter Complete");
 
 			ipLayer[0].otherIPLayer = ipLayer[1];
-			ipLayer[0].arpLayer = arpLayer[0];
 			ipLayer[1].otherIPLayer = ipLayer[0];
-            ipLayer[1].arpLayer = arpLayer[1];
+
+			arpLayer[0].SendGARP();
+			arpLayer[1].SendGARP();
 
 			// 어떤 어댑터를 사용할지 결정한다.
 			// 디버깅을 통해 adapter list 를 이용하여 설정한다.
@@ -469,8 +450,9 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 		ethernetLayer = new EthernetLayer[2];
 		niLayer = new NILayer[2];
 
-		addRouterCache("192.168.129.5", "255.255.255.0", "192.168.129.1", true, false, false);
-		addRouterCache("0.0.0.0", "0.0.0.0", "0.0.0.0", true, true, false);
+		addRouterCache("169.254.49.0", "255.255.255.0", "192.168.129.1", true, false, false, "interface 1");
+		addRouterCache("168.188.129.0", "255.255.255.0", "192.168.129.1", true, false, false, "interface 0");
+		addRouterCache("0.0.0.0", "0.0.0.0", "169.254.49.5", true, true, false, "interface 1");
 	}
 
 	JRadioButton rdbtnUp;
@@ -553,7 +535,7 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 						flag[0] = rdbtnUp.isSelected();
 						flag[1] = rdbtnGateway.isSelected();
 						flag[2] = rdbtnHost.isSelected();
-						System.out.println(fullCount - zeroCount);
+//						System.out.println(fullCount - zeroCount);
 
 						RoutingTable tbl = RoutingTable.getInstance();
 						tbl.add(tbl.getRoutingTableRow(ip.getAddress(), intNetmask, gateWayIp.getAddress(), flag, "interface1", 2));

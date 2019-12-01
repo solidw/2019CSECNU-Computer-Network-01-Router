@@ -32,6 +32,7 @@ public class NILayer implements BaseLayer {
     }
 
     public void SetAdapterList() {
+        m_pAdapterList.clear();
         int r = Pcap.findAllDevs(m_pAdapterList, errbuf);
         if (r == Pcap.NOT_OK || m_pAdapterList.isEmpty()) {
             System.err.printf("Can't read list of devices, error is %s", errbuf.toString());
@@ -144,7 +145,7 @@ public class NILayer implements BaseLayer {
                         UpperLayer.Receive(data);
                     }
                 };
-                AdapterObject.loop(100000, jpacketHandler, "");
+                AdapterObject.loop(Integer.MAX_VALUE, jpacketHandler, "");
             }
         }
     }
