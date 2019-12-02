@@ -34,6 +34,7 @@ public class NILayer implements BaseLayer {
     public void SetAdapterList() {
         m_pAdapterList.clear();
         int r = Pcap.findAllDevs(m_pAdapterList, errbuf);
+//        System.out.println(m_pAdapterList.size());
         if (r == Pcap.NOT_OK || m_pAdapterList.isEmpty()) {
             System.err.printf("Can't read list of devices, error is %s", errbuf.toString());
             return;
@@ -60,7 +61,7 @@ public class NILayer implements BaseLayer {
     public void PacketStartDriver() {
         int snaplen = 64 * 1024; // Capture all packets, no truncation
         int flags = Pcap.MODE_NON_PROMISCUOUS; // capture all packets
-        int timeout = 10 * 1000; // 10 seconds in millisecond
+        int timeout = 10000; // 10 seconds in millisecond
         m_AdapterObject = Pcap.openLive(m_pAdapterList.get(m_iNumAdapter).getName(), snaplen, flags, timeout, errbuf);
     }
 
@@ -139,15 +140,15 @@ public class NILayer implements BaseLayer {
         @Override
         public void run() {
             while (true) {
+                System.out.println("Listening...");
                 PcapPacketHandler<String> jpacketHandler = new PcapPacketHandler<String>() {
                     public void nextPacket(PcapPacket packet, String user) {
                         data = packet.getByteArray(0, packet.size());
                         UpperLayer.Receive(data);
                     }
                 };
-                AdapterObject.loop(Integer.MAX_VALUE, jpacketHandler, "");
+                AdapterObject.loop(100000, jpacketHandler, "");
             }
         }
     }
-
 }

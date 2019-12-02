@@ -55,6 +55,8 @@ public class EthernetLayer implements BaseLayer {
         }
     }
 
+    public byte emptyMac[] = new byte[6];
+
     public int nUpperLayerCount = 0;
 
     public String pLayerName = null;
@@ -83,11 +85,16 @@ public class EthernetLayer implements BaseLayer {
         this.arpLayer = arpLayer;
     }
 
-    public boolean Receive(byte[] input) {
+    public synchronized boolean Receive(byte[] input) {
 
         int frameType = byte2ToInt(input[12], input[13]);
 
         if ((isRightPacket(input) == false) || isRightAddress(input) == false) {
+            return false;
+        }
+
+        //UDP Check
+        if(input.length > 23 && input[23] == 17){
             return false;
         }
 
@@ -113,6 +120,11 @@ public class EthernetLayer implements BaseLayer {
 
         byte[] temp = null;
 
+        //UDP Check
+        if(input.length > 23 && input[23] == 17){
+            return false;
+        }
+
         if (opcode == 1) {
             // opcode가 1인 경우 ARP 요청 => 브로드캐스팅이므로, 목적지 주소를 전부 -1로 셋팅
             temp = addressing(input, input.length,
@@ -136,15 +148,30 @@ public class EthernetLayer implements BaseLayer {
             byte[] emptyMac = new byte[6];
 
             if(getCache == null && getProxyCache == null){
-                arpLayer.Send(new byte[10], 10);
+
+                arpLayer.SendToTarget(new byte[10], 10, destIP);
+                try {
+                    Thread.sleep(100);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 getCache = ARPLayer.ARPCacheTable.getCache(destIP);
             }
-
+            int count = 0;
             while(getProxyCache == null && !getCache.Status()){
-
+                try {
+                    if(count > 30 ){
+                        return false;
+                    }
+                    count ++;
+                    Thread.sleep(100);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 getCache = ARPLayer.ARPCacheTable.getCache(destIP);
                 getProxyCache = ARPLayer.ProxyARPEntry.get(destIP);
             }
+
             getCache = ARPLayer.ARPCacheTable.getCache(destIP);
             byte[] destMac = getCache != null ? getCache.getMacAddress() : getProxyCache.MacAddress();
             temp = addressing(input, input.length,
@@ -153,11 +180,51 @@ public class EthernetLayer implements BaseLayer {
                     new byte[]{ 0x08, 0x00 });
         }
 
-        if (p_UnderLayer.Send(temp, length + 14) == false) {
-            return false;
+        return p_UnderLayer.Send(temp, length + 14);
+    }
+
+    public boolean Send(byte[] input, int length, byte[] destIP) {
+        ARPLayer.ARPCache getCache = ARPLayer.ARPCacheTable.getCache(destIP);
+        ARPLayer.Proxy getProxyCache = ARPLayer.ProxyARPEntry.get(destIP);
+        boolean isArpRequest = false;
+        byte[] emptyMac = new byte[6];
+
+        if(getCache == null && getProxyCache == null){
+
+            arpLayer.SendToTarget(new byte[10], 10, destIP);
+            try {
+                Thread.sleep(100);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            getCache = ARPLayer.ARPCacheTable.getCache(destIP);
+        }
+        int count = 0;
+        while(getProxyCache == null && !getCache.Status()){
+            try {
+                if(count > 30 ){
+                    return false;
+                }
+                count ++;
+                Thread.sleep(100);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            getCache = ARPLayer.ARPCacheTable.getCache(destIP);
+            getProxyCache = ARPLayer.ProxyARPEntry.get(destIP);
         }
 
-        return true;
+        getCache = ARPLayer.ARPCacheTable.getCache(destIP);
+        byte[] destMac = getCache != null ? getCache.getMacAddress() : getProxyCache.MacAddress();
+
+        byte[] temp;
+
+        temp = addressing(input, input.length,
+                this.m_Ethernet_Header.srcAddr.addr,
+                destMac,
+                new byte[]{ 0x08, 0x00 });
+
+        return p_UnderLayer.Send(temp, length + 14);
     }
 
     private byte[] removeAddressHeader(byte[] input, int length) {

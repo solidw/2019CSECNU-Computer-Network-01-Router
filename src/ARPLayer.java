@@ -13,6 +13,7 @@ public class ARPLayer implements BaseLayer {
     String interfaceName;
     static RoutingDlg routingDlg;
 
+
     public ARPLayer(String name) {
         pLayerName = name;
         interfaceName = "Interface 0";
@@ -104,40 +105,45 @@ public class ARPLayer implements BaseLayer {
         ARPLayer.routingDlg = routingDlg;
     }
 
-//   메세지 송신
     @Override
-    public boolean Send(byte[] input, int length) {
-//        여기에 캐시테이블 확인해서 보내는 로직 작성
-        ARPCache cache = null;
-        cache = ARPCacheTable.getCache(this.m_sHeader.dstIp);
-        if (cache == null) {
-            Send(this.m_sHeader.dstIp);
-            Thread thread = new ARPThread(m_sHeader.dstIp, input, this.p_UnderLayer);
-            thread.start();
-        }
-        else {
-            this.p_UnderLayer.Send(input, length);
-        }
+    public synchronized boolean Send(byte[] input, int length) {
+        GetUnderLayer().Send(input, input.length);
         return true;
     }
 
-//    ARP 메세지 송신하는 함수
-    public synchronized boolean Send(byte[] dstIP) {
-        m_sHeader.setDstIp(dstIP);
+    public boolean Send(byte[] input, int length, byte[] targetIp) {
+       return ((EthernetLayer)GetUnderLayer()).Send(input, length, targetIp);
+    }
+
+    public boolean SendGARP() {
+        byte[] input = new byte[1];
+        return this.SendToTarget(input, input.length, this.m_sHeader.srcIp);
+    }
+
+    public synchronized boolean SendToTarget(byte[] input, int length, byte[] targetIp) {
         m_sHeader.setOpcode(new byte[]{(byte)0x00, (byte)0x01});
         m_sHeader.setDstMac(new byte[6]);
 
-        ARPCache addCache = new ARPCache(interfaceName, m_sHeader.dstIp, new byte[6], false);
-        if(!Arrays.equals(m_sHeader.srcIp, addCache.getIpAddress())) {
-            if(ARPCacheTable.add(addCache)){
-                routingDlg.addArpCacheToTable(addCache);
+        ARPCache newCache = ARPLayer.ARPCacheTable.getCache(targetIp);
+        // arpCache 에 이미 원하는 cache 가 있는지 확인
+        if(!(newCache != null && newCache.status == true)){
+            // 원하는 정보가 없다면 테이블에 추가
+            ARPCache addCache = new ARPCache(interfaceName, targetIp, new byte[6], false);
+            if(!Arrays.equals(m_sHeader.srcIp, addCache.getIpAddress())) {
+                if(ARPCacheTable.add(addCache)){
+                    routingDlg.addArpCacheToTable(addCache);
+                    System.out.println(this.GetLayerName());
+                }
             }
-        }
-        byte[] input = new byte[1];
+            byte[] buf = ObjToByte(m_sHeader, input, length);
+            System.arraycopy(targetIp, 0, buf, 24, 4);
 
-        byte[] buf = ObjToByte(m_sHeader, input, input.length);
-        GetUnderLayer().Send(buf, buf.length);
-        return true;
+            // arp 전송
+            GetUnderLayer().Send(buf, buf.length);
+            return true;
+        }
+
+        return false;
     }
 
     public byte[] swapSrcAndDst(byte[] input, byte[] senderIp, byte[] senderMac, byte[] dstIp, byte[] dstMac) {
@@ -147,11 +153,6 @@ public class ARPLayer implements BaseLayer {
         System.arraycopy(senderMac, 0, input,18, 6);
         System.arraycopy(senderIp, 0, input, 24, 4);
         return input;
-    }
-
-    public boolean SendGARP() {
-        Send(getSrcIp());
-        return true;
     }
 
     @Override
@@ -173,6 +174,7 @@ public class ARPLayer implements BaseLayer {
                 ARPCache addCache = new ARPCache(interfaceName, senderIp, senderMac, true);
                 if(ARPCacheTable.add(addCache)){
                     routingDlg.addArpCacheToTable(addCache);
+//                    System.out.println(this.GetLayerName());
                 }
             }
 
@@ -348,20 +350,20 @@ public class ARPLayer implements BaseLayer {
         }
 
         // table에 arpCache를 추가한다.
-        public static boolean add(ARPCache arpCache) {
+        public static boolean add(ARPCache newCache) {
 
-            ARPCache getCache = getCache(arpCache.IpAddress());
+            ARPCache myCache = getCache(newCache.IpAddress());
 
             // 테이블에 없다면 바로 추가한다.
-            if(getCache == null){
-                table.add(arpCache);
+            if(myCache == null){
+                table.add(newCache);
             // 있지만 mac이 비어있다면 수정한다.
             }
-            else if(!Arrays.equals(arpCache.getMacAddress(), getCache.MacAddress())){
-                getCache.setMacAddress(arpCache.getMacAddress());
-                getCache.setStatus(true);
+            else if(!Arrays.equals(newCache.getMacAddress(), myCache.MacAddress())){
+                myCache.setMacAddress(newCache.getMacAddress());
+                myCache.setStatus(true);
             }
-            else if(Arrays.equals(arpCache.getMacAddress(), getCache.MacAddress()) && getCache.status == true){
+            else if(Arrays.equals(newCache.getMacAddress(), myCache.MacAddress()) && myCache.status == true){
             }
             else {
                 return false;
@@ -429,29 +431,6 @@ public class ARPLayer implements BaseLayer {
             for (Proxy item : entry) {
                 if(Arrays.equals(item.IpAddress(), ip)) {
                     entry.remove(item);
-                    break;
-                }
-            }
-        }
-    }
-
-    class ARPThread extends Thread {
-        byte[] dstIP;
-        byte[] input;
-        BaseLayer p_UnderLayer = null;
-        ARPThread(byte[] dstIP, byte[] input, BaseLayer p_UnderLayer) {
-            this.dstIP = dstIP;
-            this.input = input;
-            this.p_UnderLayer = p_UnderLayer;
-        }
-
-        @Override
-        public void run() {
-            while(true) {
-                ARPCache cache = null;
-                cache = ARPCacheTable.getCache(dstIP);
-                if(cache != null) {
-                    p_UnderLayer.Send(input, input.length);
                     break;
                 }
             }
