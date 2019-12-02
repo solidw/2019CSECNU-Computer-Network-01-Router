@@ -1,6 +1,7 @@
 import org.jnetpcap.PcapIf;
 
 import java.awt.Color;
+import java.awt.EventQueue;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
@@ -114,7 +115,7 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 		return buf.toString();
 	}
 
-	public String ipByteToString(byte[] bytes) {
+	public static String ipByteToString(byte[] bytes) {
 		String result = "";
 		for (byte raw : bytes) {
 			result += raw & 0xFF;
@@ -142,6 +143,7 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 		}
 		return ret;
 	}
+
 
 	public boolean addRouterCache(String ipAddr, String netMask, String gateWay, boolean up, boolean isGateWay, boolean host, String interfaceName){
 		InetAddress ip = null;
@@ -190,7 +192,7 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 		// TODO Auto-generated method stub
 		RoutingDlg routingDlg;
 		routingDlg = new RoutingDlg("Routing");
-
+	
 		try {
 			m_LayerMgr.AddLayer(routingDlg);
 
@@ -222,64 +224,103 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			m_LayerMgr.GetLayer("NI1").SetUpperUnderLayer(m_LayerMgr.GetLayer("Ethernet1"));
 			m_LayerMgr.GetLayer("Ethernet1").SetUpperUnderLayer(m_LayerMgr.GetLayer("Ip1"));
 			m_LayerMgr.GetLayer("Ip1").SetUnderLayer(m_LayerMgr.GetLayer("Arp1"));
-			m_LayerMgr.GetLayer("Ethernet1").SetUpperUnderLayer(m_LayerMgr.GetLayer("Arp1"));;
+			m_LayerMgr.GetLayer("Ethernet1").SetUpperUnderLayer(m_LayerMgr.GetLayer("Arp1"));
+
+			// ip레이어에 이더넷레이어 설정
+			ipLayer[0].setEthernetLayer(ethernetLayer[0]);
+			ipLayer[1].setEthernetLayer(ethernetLayer[1]);
 
 			arpLayer[0].setRoutingDlg(routingDlg);
 			arpLayer[1].setRoutingDlg(routingDlg);
 
 //			각 NIC에 해당하는 MAC Address와 IP Address 를 set
-			int index = 0;
-			Enumeration<NetworkInterface> eNI = NetworkInterface.getNetworkInterfaces();
-			while(eNI.hasMoreElements()) {
-				NetworkInterface ni = eNI.nextElement();
-//				ni를 사용 중이고 루프백이 아니면
-				if(ni.isUp() && !ni.isLoopback()) {
-					Enumeration<InetAddress> eIA = ni.getInetAddresses();
-					while(eIA.hasMoreElements()) {
-						InetAddress ia = eIA.nextElement();
-						if(ia instanceof Inet4Address) {
-//							ipv4의 경우만 세팅
-							ethernetLayer[index].setSrcAddr(ni.getHardwareAddress());
-							arpLayer[index].setSrcMac(ni.getHardwareAddress());
-							arpLayer[index].setSrcIp(ia.getAddress());
-							ipLayer[index].setSrcIP(ia.getAddress());
-							System.out.format("Adapter %d IP : %s\n", index, ia.getHostAddress());
-						}
-					}
-					while(true) {
-						int iNum = 0;
-						boolean nicFound = false;
+//			int index = 0;
+//			Enumeration<NetworkInterface> eNI = NetworkInterface.getNetworkInterfaces();
+//			while(eNI.hasMoreElements()) {
+//				NetworkInterface ni = eNI.nextElement();
+////				ni를 사용 중이고 루프백이 아니면
+//				if(ni.isUp() && !ni.isLoopback()) {
+//					Enumeration<InetAddress> eIA = ni.getInetAddresses();
+//					while(eIA.hasMoreElements()) {
+//						InetAddress ia = eIA.nextElement();
+//						if(ia instanceof Inet4Address) {
+////							ipv4의 경우만 세팅
+//							ethernetLayer[index].setSrcAddr(ni.getHardwareAddress());
+//							arpLayer[index].setSrcMac(ni.getHardwareAddress());
+//							arpLayer[index].setSrcIp(ia.getAddress());
+//							ipLayer[index].setSrcIP(ia.getAddress());
+//							System.out.format("Adapter %d IP : %s\n", index, ia.getHostAddress());
+//						}
+//					}
+//					while(true) {
+//						int iNum = 0;
+//						boolean nicFound = false;
+//
+//						for(PcapIf nic : niLayer[index].m_pAdapterList) {
+//							if(Arrays.equals(nic.getHardwareAddress(), ni.getHardwareAddress())) {
+////								nilayer 어댑터 세팅
+//								niLayer[index].SetAdapterNumber(iNum);
+//								nicFound = true;
+//								break;
+//							}
+//							iNum++;
+//						}
+//						if(nicFound)
+//							break;
+//						niLayer[index].SetAdapterList();
+//					}
+//					if(++index > 1)
+//						break;
+//				}
+//			}
 
-						for(PcapIf nic : niLayer[index].m_pAdapterList) {
-							if(Arrays.equals(nic.getHardwareAddress(), ni.getHardwareAddress())) {
-//								nilayer 어댑터 세팅
-								niLayer[index].SetAdapterNumber(iNum);
-								nicFound = true;
-								break;
-							}
-							iNum++;
-						}
-						if(nicFound)
-							break;
-						niLayer[index].SetAdapterList();
-					}
-					if(++index > 1)
-						break;
-				}
-			}
 
-			System.out.println("Setting Adapter Complete");
+//			ethernetLayer[0].SetUpperLayer(ipLayer[0]);
+//			ethernetLayer[1].SetUpperLayer(ipLayer[1]);  중복된 코드!!
+
+			ethernetLayer[0].setArpLayer(arpLayer[0]);
+			ethernetLayer[1].setArpLayer(arpLayer[1]);
+
+			ethernetLayer[0].setSrcAddr((niLayer[0].m_pAdapterList.get(0).getHardwareAddress()));
+			ethernetLayer[1].setSrcAddr((niLayer[1].m_pAdapterList.get(1).getHardwareAddress()));
+			ipLayer[0].setSrcIP(niLayer[0].m_pAdapterList.get(0).getAddresses().get(0).getAddr().getData());
+			ipLayer[1].setSrcIP(niLayer[1].m_pAdapterList.get(1).getAddresses().get(0).getAddr().getData());
+
+			arpLayer[0].setSrcIp(niLayer[0].m_pAdapterList.get(0).getAddresses().get(0).getAddr().getData());
+			arpLayer[0].setSrcMac(niLayer[0].m_pAdapterList.get(0).getHardwareAddress());
+			arpLayer[1].setSrcIp(niLayer[1].m_pAdapterList.get(1).getAddresses().get(0).getAddr().getData());
+			arpLayer[1].setSrcMac(niLayer[1].m_pAdapterList.get(1).getHardwareAddress());
+
+			Scanner scanner = new Scanner(System.in);
+            System.out.println("Input Command \"set\" then Routing Start");
+
+            while(true) {
+                String command = scanner.next();
+                if(command.equals("set")) {
+                    niLayer[0].SetAdapterNumber(0);
+                    niLayer[1].SetAdapterNumber(1);
+
+                    System.out.println("Adapter 0 : " +  niLayer[0].m_pAdapterList.get(0).getDescription());
+                    System.out.format("IP %s\n", ipByteToString(ipLayer[0].getSrcIP()));
+                    System.out.println("1 : " +  niLayer[1].m_pAdapterList.get(1).getDescription());
+                    System.out.format("IP %s\n", ipByteToString(ipLayer[1].getSrcIP()));
+                    System.out.println("Setting Adapter Complete");
+                }
+                break;
+            }
+
 
 			ipLayer[0].otherIPLayer = ipLayer[1];
+			ipLayer[0].arpLayer = arpLayer[0];
 			ipLayer[1].otherIPLayer = ipLayer[0];
+            ipLayer[1].arpLayer = arpLayer[1];
 
-			arpLayer[0].SendGARP();
-			arpLayer[1].SendGARP();
-
+            arpLayer[0].SendGARP();
+            arpLayer[1].SendGARP();
 			// 어떤 어댑터를 사용할지 결정한다.
 			// 디버깅을 통해 adapter list 를 이용하여 설정한다.
 			// 링크가 다 연결된 후 언더레이어 접근할수 있어서 이 때 접근해준다.
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -450,17 +491,9 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 		ethernetLayer = new EthernetLayer[2];
 		niLayer = new NILayer[2];
 
-		// R1's Routing Table
-		addRouterCache("192.168.1.0", "255.255.255.0", "0.0.0.0", true, false, false, "interface 0");
 		addRouterCache("192.168.2.0", "255.255.255.0", "0.0.0.0", true, false, false, "interface 1");
-		addRouterCache("192.168.0.0", "255.255.0.0", "0.0.0.0", true, false, false, "interface 1");
-		addRouterCache("0.0.0.0", "0.0.0.0", "192.168.2.1", true, true, false, "interface 1");
-
-		// R2's Routing Table
-		addRouterCache("192.168.1.0", "255.255.255.0", "192.168.2.1", true, true, false, "interface 0");
-		addRouterCache("192.168.2.0", "255.255.255.0", "0.0.0.0", true, false, false, "interface 0");
-		addRouterCache("192.168.3.0", "255.255.255.0", "0.0.0.0", true, false, false, "interface 1");
-		addRouterCache("0.0.0.0", "0.0.0.0", "192.168.2.1", true, true, false, "interface 0");
+		addRouterCache("192.168.1.0", "255.255.255.0", "0.0.0.0", true, false, false, "interface 0");
+		addRouterCache("0.0.0.0", "0.0.0.0", "192.168.129.5", true, true, false, "interface 1");
 	}
 
 	JRadioButton rdbtnUp;
