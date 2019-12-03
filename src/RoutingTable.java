@@ -86,7 +86,7 @@ public class RoutingTable {
                 res[i] = Integer.toString(255);
             }
 
-            res[loopCnt] = Integer.toString((255 - (int) Math.pow(2, 8 - remain) + 1));
+            if(loopCnt != 4) res[loopCnt] = Integer.toString((255 - (int) Math.pow(2, 8 - remain) + 1));
 
             return res[0] + "." + res[1] + "." + res[2] + "." + res[3];
         }

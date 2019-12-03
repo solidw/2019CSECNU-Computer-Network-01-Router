@@ -16,7 +16,7 @@ public class ARPLayer implements BaseLayer {
 
     public ARPLayer(String name) {
         pLayerName = name;
-        interfaceName = "Interface 0";
+        interfaceName = "Interface " + pLayerName.charAt(3);
     }
 
     private static class ARPHeader {
@@ -132,7 +132,7 @@ public class ARPLayer implements BaseLayer {
             if(!Arrays.equals(m_sHeader.srcIp, addCache.getIpAddress())) {
                 if(ARPCacheTable.add(addCache)){
                     routingDlg.addArpCacheToTable(addCache);
-                    System.out.println(this.GetLayerName());
+//                    System.out.println(this.GetLayerName());
                 }
             }
             byte[] buf = ObjToByte(m_sHeader, input, length);
