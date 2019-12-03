@@ -1,7 +1,4 @@
-import org.jnetpcap.PcapIf;
-
 import java.awt.Color;
-import java.awt.EventQueue;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
@@ -14,7 +11,6 @@ import javax.swing.table.TableColumnModel;
 import java.awt.Font;
 
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.net.*;
 import java.util.*;
 import java.awt.event.ActionEvent;
@@ -189,7 +185,6 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 	}
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 		RoutingDlg routingDlg;
 		routingDlg = new RoutingDlg("Routing");
 	
