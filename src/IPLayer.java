@@ -1,6 +1,3 @@
-import com.sun.xml.internal.ws.server.provider.ProviderInvokerTube;
-import sun.plugin.javascript.navig4.Layer;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -155,7 +152,6 @@ public class IPLayer implements BaseLayer {
     public synchronized boolean Send(byte[] input, int length) {
         byte[] buffer = ObjToByte(input, input.length);
         return ethernetLayer.Send(buffer, buffer.length);
-
     }
 
     @Override
@@ -170,7 +166,7 @@ public class IPLayer implements BaseLayer {
         byte[] targetIp = new byte[]{
                 input[startOfDestIp], input[startOfDestIp+ 1], input[startOfDestIp + 2], input[startOfDestIp + 3]};
 
-//        라우터에게 직접 보내는 ping인 경우
+//      라우터에게 직접 보내는 ping인 경우
         if(Arrays.equals(targetIp, this.m_iHeader.srcIP)){
             byte[] response = input;
 
