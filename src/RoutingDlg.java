@@ -37,8 +37,8 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 	JTextField textFieldIpAddress, textFieldEthernetAddress;
 
 	final String[] tableHeaderStsticRouting = { "Destination", "NetMask", "Gateway", "Flag", "Interface", "Metric" };
-	final String[] tableHeaderArpCache = { "IP Address", "Ethernet Address", "Interface", "Flag" };
-	final String[] tableHeaderProxyArp = { "IP Address", "Ethernet Address", "Interface" };
+	final String[] tableHeaderArpCache = { "Interface", "IP Address", "Ethernet Address", "Status" };
+	final String[] tableHeaderProxyArp = { "Interface", "IP Address", "Ethernet Address" };
 	String[][] tableContentsRouting = new String[0][3];
 	String[][] tableContentsCache = new String[0][3];
 	String[][] tableContentsProxy = new String[0][3];
@@ -297,13 +297,13 @@ public class RoutingDlg extends JFrame implements BaseLayer {
             while(true) {
                 String command = scanner.next();
                 if(command.equals("set")) {
+					System.out.println("Adapter 0 : " +  niLayer[0].m_pAdapterList.get(0).getDescription());
+					System.out.format("IP %s\n", ipByteToString(ipLayer[0].getSrcIP()));
                     niLayer[0].SetAdapterNumber(0);
+                    Thread.sleep(500);
+					System.out.println("Adapter 1 : " +  niLayer[1].m_pAdapterList.get(1).getDescription());
+					System.out.format("IP %s\n", ipByteToString(ipLayer[1].getSrcIP()));
                     niLayer[1].SetAdapterNumber(1);
-
-                    System.out.println("Adapter 0 : " +  niLayer[0].m_pAdapterList.get(0).getDescription());
-                    System.out.format("IP %s\n", ipByteToString(ipLayer[0].getSrcIP()));
-                    System.out.println("1 : " +  niLayer[1].m_pAdapterList.get(1).getDescription());
-                    System.out.format("IP %s\n", ipByteToString(ipLayer[1].getSrcIP()));
                     System.out.println("Setting Adapter Complete");
                 }
                 break;
@@ -329,30 +329,45 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 		this.pLayerName = pName;
 		setTitle("Static Router");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 1000, 500);
+		setBounds(100, 100, 1120, 500);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
+		contentPane.setBackground(Color.DARK_GRAY);
 		contentPane.setLayout(null);
 
 		JPanel panelRouting = new JPanel();
 		panelRouting.setBounds(10, 10, 580, 440);
+		panelRouting.setBackground(Color.DARK_GRAY);
+		panelRouting.setForeground(Color.WHITE);
 		contentPane.add(panelRouting);
 		panelRouting.setLayout(null);
 
 		JLabel lblRoutingTable = new JLabel("Static Routing Table");
 		lblRoutingTable.setBounds(178, 10, 201, 31);
-		lblRoutingTable.setFont(new Font("굴림", Font.PLAIN, 20));
+		lblRoutingTable.setFont(new Font("굴림", Font.BOLD, 20));
+		lblRoutingTable.setBackground(Color.DARK_GRAY);
+		lblRoutingTable.setForeground(Color.WHITE);
 		panelRouting.add(lblRoutingTable);
 
 		tableModelRouting = new DefaultTableModel(tableContentsRouting, tableHeaderStsticRouting);
 		tableRouting = new JTable(tableModelRouting);
 		tableRouting.setShowHorizontalLines(false);
 		tableRouting.setShowGrid(false);
+		tableRouting.setBackground(Color.DARK_GRAY);
+		tableRouting.setForeground(Color.white);
+		tableRouting.getColumnModel().getColumn(3).setPreferredWidth(15);
+		tableRouting.getColumnModel().getColumn(5).setPreferredWidth(15);
+		tableRouting.getTableHeader().setReorderingAllowed(false);
+		tableRouting.getTableHeader().setResizingAllowed(false);
 		scrollRouting = new JScrollPane(tableRouting);
 		scrollRouting.setBounds(10, 50, 556, 338);
+		scrollRouting.getViewport().setBackground(Color.DARK_GRAY);
+		scrollRouting.getViewport().setForeground(Color.WHITE);
 		tableRendererRouting.setHorizontalAlignment(SwingConstants.CENTER);
 		tableHeaderRouting = tableRouting.getTableHeader();
+		tableHeaderRouting.setBackground(Color.DARK_GRAY);
+		tableHeaderRouting.setForeground(Color.WHITE);
 		columnModelRouting = tableRouting.getColumnModel();
 		for (int i = 0; i < tableModelRouting.getColumnCount(); i++)
 			columnModelRouting.getColumn(i).setCellRenderer(tableRendererRouting);
@@ -367,6 +382,10 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			}
 		});
 		btnRoutingAdd.setBounds(167, 399, 111, 31);
+		btnRoutingAdd.setBorder(new BevelBorder(BevelBorder.RAISED));
+		btnRoutingAdd.setFocusPainted(false);
+		btnRoutingAdd.setBackground(Color.DARK_GRAY);
+		btnRoutingAdd.setForeground(Color.WHITE);
 		panelRouting.add(btnRoutingAdd);
 
 		JButton btnRoutingDelete = new JButton("Delete");
@@ -379,7 +398,7 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 					tableModelRouting.removeRow(tableRouting.getSelectedRow());
 					try {
 						byte[] bytesIp = InetAddress.getByName(destIp.trim()).getAddress();
-						ARPLayer.ProxyARPEntry.remove(bytesIp);
+						RoutingTable.getInstance().remove(bytesIp);
 					} catch (Exception exception) {
 						exception.printStackTrace();
 					}
@@ -387,16 +406,24 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			}
 		});
 		btnRoutingDelete.setBounds(298, 399, 111, 31);
+		btnRoutingDelete.setBorder(new BevelBorder(BevelBorder.RAISED));
+		btnRoutingDelete.setFocusPainted(false);
+		btnRoutingDelete.setBackground(Color.DARK_GRAY);
+		btnRoutingDelete.setForeground(Color.WHITE);
 		panelRouting.add(btnRoutingDelete);
 
 		JPanel panelCache = new JPanel();
-		panelCache.setBounds(602, 10, 370, 220);
+		panelCache.setBounds(602, 10, 490, 220);
+		panelCache.setBackground(Color.DARK_GRAY);
+		panelCache.setForeground(Color.white);
 		contentPane.add(panelCache);
 		panelCache.setLayout(null);
 
 		JLabel lblArpCacheTable = new JLabel("ARP Cache Table");
-		lblArpCacheTable.setFont(new Font("굴림", Font.PLAIN, 20));
-		lblArpCacheTable.setBounds(114, 10, 192, 30);
+		lblArpCacheTable.setBounds(185, 0, 200, 30);
+		lblArpCacheTable.setBackground(Color.DARK_GRAY);
+		lblArpCacheTable.setForeground(Color.white);
+		lblArpCacheTable.setFont(new Font("굴림", Font.BOLD, 20));
 		panelCache.add(lblArpCacheTable);
 
 		JButton btnCacheDelete = new JButton("Delete");
@@ -416,30 +443,48 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 				}
 			}
 		});
-		btnCacheDelete.setBounds(136, 179, 111, 31);
+		btnCacheDelete.setBounds(203, 179, 111, 31);
+		btnCacheDelete.setBorder(new BevelBorder(BevelBorder.RAISED));
+		btnCacheDelete.setFocusPainted(false);
+		btnCacheDelete.setBackground(Color.DARK_GRAY);
+		btnCacheDelete.setForeground(Color.WHITE);
 		panelCache.add(btnCacheDelete);
 
 		tableModelCache = new DefaultTableModel(tableContentsCache, tableHeaderArpCache);
 		tableCache = new JTable(tableModelCache);
 		tableCache.setShowHorizontalLines(false);
 		tableCache.setShowGrid(false);
+		tableCache.setBackground(Color.DARK_GRAY);
+		tableCache.setForeground(Color.white);
+		tableCache.getColumnModel().getColumn(0).setPreferredWidth(40);
+		tableCache.getColumnModel().getColumn(3).setPreferredWidth(50);
+		tableCache.getTableHeader().setReorderingAllowed(false);
+		tableCache.getTableHeader().setResizingAllowed(false);
 		scrollCache = new JScrollPane(tableCache);
-		scrollCache.setBounds(12, 42, 346, 131);
+		scrollCache.setBounds(12, 36, 466, 131);
+		scrollCache.getViewport().setBackground(Color.DARK_GRAY);
+		scrollCache.getViewport().setForeground(Color.WHITE);
 		tableRendererCache.setHorizontalAlignment(SwingConstants.CENTER);
 		tableHeaderCache = tableCache.getTableHeader();
+		tableHeaderCache.setBackground(Color.DARK_GRAY);
+		tableHeaderCache.setForeground(Color.WHITE);
 		columnModelCache = tableCache.getColumnModel();
 		for (int i = 0; i < tableModelCache.getColumnCount(); i++)
 			columnModelCache.getColumn(i).setCellRenderer(tableRendererCache);
 		panelCache.add(scrollCache);
 
 		JPanel panelProxy = new JPanel();
-		panelProxy.setBounds(602, 240, 370, 210);
+		panelProxy.setBounds(602, 240, 490, 210);
+		panelProxy.setBackground(Color.DARK_GRAY);
+		panelProxy.setForeground(Color.white);
 		contentPane.add(panelProxy);
 		panelProxy.setLayout(null);
 
 		JLabel lblProxyArpTable = new JLabel("Proxy ARP Table");
-		lblProxyArpTable.setFont(new Font("굴림", Font.PLAIN, 20));
-		lblProxyArpTable.setBounds(110, 10, 159, 29);
+		lblProxyArpTable.setBounds(177, 0, 200, 29);
+		lblProxyArpTable.setBackground(Color.DARK_GRAY);
+		lblProxyArpTable.setForeground(Color.white);
+		lblProxyArpTable.setFont(new Font("굴림", Font.BOLD, 20));
 		panelProxy.add(lblProxyArpTable);
 
 		JButton btnProxyDelete = new JButton("Delete");
@@ -459,17 +504,30 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 				}
 			}
 		});
-		btnProxyDelete.setBounds(214, 173, 111, 31);
+		btnProxyDelete.setBounds(296, 169, 111, 31);
+		btnProxyDelete.setBorder(new BevelBorder(BevelBorder.RAISED));
+		btnProxyDelete.setFocusPainted(false);
+		btnProxyDelete.setBackground(Color.DARK_GRAY);
+		btnProxyDelete.setForeground(Color.WHITE);
 		panelProxy.add(btnProxyDelete);
 
 		tableModelProxy = new DefaultTableModel(tableContentsProxy, tableHeaderProxyArp);
 		tableProxy = new JTable(tableModelProxy);
 		tableProxy.setShowHorizontalLines(false);
 		tableProxy.setShowGrid(false);
+		tableProxy.setBackground(Color.DARK_GRAY);
+		tableProxy.setForeground(Color.white);
+		tableProxy.getColumnModel().getColumn(0).setPreferredWidth(40);
+		tableProxy.getTableHeader().setReorderingAllowed(false);
+		tableProxy.getTableHeader().setResizingAllowed(false);
 		scrollProxy = new JScrollPane(tableProxy);
-		scrollProxy.setBounds(12, 39, 346, 120);
+		scrollProxy.setBounds(12, 39, 466, 120);
+		scrollProxy.getViewport().setBackground(Color.DARK_GRAY);
+		scrollProxy.getViewport().setForeground(Color.WHITE);
 		tableRendererProxy.setHorizontalAlignment(SwingConstants.CENTER);
 		tableHeaderProxy = tableProxy.getTableHeader();
+		tableHeaderProxy.setBackground(Color.DARK_GRAY);
+		tableHeaderProxy.setForeground(Color.WHITE);
 		columnModelProxy = tableProxy.getColumnModel();
 		for (int i = 0; i < tableModelProxy.getColumnCount(); i++)
 			columnModelProxy.getColumn(i).setCellRenderer(tableRendererProxy);
@@ -482,7 +540,11 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 				proxyAddDialog.setVisible(true);
 			}
 		});
-		btnProxyAdd.setBounds(64, 173, 111, 31);
+		btnProxyAdd.setBounds(100, 169, 111, 31);
+		btnProxyAdd.setBorder(new BevelBorder(BevelBorder.RAISED));
+		btnProxyAdd.setFocusPainted(false);
+		btnProxyAdd.setBackground(Color.DARK_GRAY);
+		btnProxyAdd.setForeground(Color.WHITE);
 		panelProxy.add(btnProxyAdd);
 		setVisible(true);
 
@@ -491,9 +553,10 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 		ethernetLayer = new EthernetLayer[2];
 		niLayer = new NILayer[2];
 
-		addRouterCache("192.168.2.0", "255.255.255.0", "0.0.0.0", true, false, false, "interface 1");
 		addRouterCache("192.168.1.0", "255.255.255.0", "0.0.0.0", true, false, false, "interface 0");
-		addRouterCache("0.0.0.0", "0.0.0.0", "192.168.129.5", true, true, false, "interface 1");
+		addRouterCache("192.168.2.0", "255.255.255.0", "0.0.0.0", true, false, false, "interface 1");
+		addRouterCache("192.168.0.0", "255.255.0.0", "192.168.2.2", true, false, false, "interface 1");
+		addRouterCache("0.0.0.0", "0.0.0.0", "192.168.2.2", true, true, false, "interface 1");
 	}
 
 	JRadioButton rdbtnUp;
@@ -528,13 +591,13 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			routingDialogPane.add(lblGateway);
 
 			comboBoxInterface = new JComboBox<String>(deviceList);
-			comboBoxInterface.setBounds(110, 184, 204, 21);
+			comboBoxInterface.setBounds(90, 184, 224, 21);
 			comboBoxInterface.setBackground(Color.DARK_GRAY);
 			comboBoxInterface.setForeground(Color.WHITE);
 			routingDialogPane.add(comboBoxInterface);
 
 			textFieldNetmask = new JTextField();
-			textFieldNetmask.setBounds(110, 60, 204, 21);
+			textFieldNetmask.setBounds(90, 60, 224, 21);
 			textFieldNetmask.setBackground(Color.DARK_GRAY);
 			textFieldNetmask.setForeground(Color.white);
 			routingDialogPane.add(textFieldNetmask);
@@ -542,7 +605,7 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 
 			textFieldGateway = new JTextField();
 			textFieldGateway.setColumns(10);
-			textFieldGateway.setBounds(110, 100, 204, 21);
+			textFieldGateway.setBounds(90, 100, 224, 21);
 			textFieldGateway.setBackground(Color.DARK_GRAY);
 			textFieldGateway.setForeground(Color.white);
 			routingDialogPane.add(textFieldGateway);
@@ -626,22 +689,28 @@ public class RoutingDlg extends JFrame implements BaseLayer {
 			routingDialogPane.add(lblInterface);
 
 			rdbtnUp = new JRadioButton("UP");
-			rdbtnUp.setBounds(110, 143, 41, 23);
+			rdbtnUp.setBounds(90, 143, 50, 23);
+			rdbtnUp.setBackground(Color.DARK_GRAY);
+			rdbtnUp.setForeground(Color.white);
 			routingDialogPane.add(rdbtnUp);
 
 			rdbtnGateway = new JRadioButton("Gateway");
-			rdbtnGateway.setBounds(164, 143, 85, 23);
+			rdbtnGateway.setBounds(160, 143, 100, 23);
+			rdbtnGateway.setBackground(Color.DARK_GRAY);
+			rdbtnGateway.setForeground(Color.white);
 			routingDialogPane.add(rdbtnGateway);
 
 			rdbtnHost = new JRadioButton("Host");
-			rdbtnHost.setBounds(263, 143, 51, 23);
+			rdbtnHost.setBounds(260, 143, 70, 23);
+			rdbtnHost.setBackground(Color.DARK_GRAY);
+			rdbtnHost.setForeground(Color.white);
 			routingDialogPane.add(rdbtnHost);
 
 			textFieldDestination = new JTextField();
 			textFieldDestination.setForeground(Color.WHITE);
 			textFieldDestination.setColumns(10);
 			textFieldDestination.setBackground(Color.DARK_GRAY);
-			textFieldDestination.setBounds(110, 20, 204, 21);
+			textFieldDestination.setBounds(90, 20, 224, 21);
 			routingDialogPane.add(textFieldDestination);
 		}
 	}

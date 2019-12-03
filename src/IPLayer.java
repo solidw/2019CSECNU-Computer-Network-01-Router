@@ -203,7 +203,13 @@ public class IPLayer implements BaseLayer {
         }
 //        다른 인터페이스에 매칭되었을 때
         else {
-            otherIPLayer.Receive(input);
+            if(row.getFlags()[0] == true && row.getFlags()[1] == false) {
+                //flag U
+                otherIPLayer.p_UnderLayer.Send(input, input.length);
+            } else if (row.getFlags()[0] == true && row.getFlags()[1] == true) {
+                //flag UG
+                otherIPLayer.arpLayer.Send(input, input.length, row.getGateway());
+            }
         }
 
         return true;
